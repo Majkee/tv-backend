@@ -1,0 +1,7 @@
+[
+  {"model": "LM-43S19", "name": "Lumio S 43\"", "year": 2019, "max_api": 5},
+  {"model": "LM-55S19", "name": "Lumio S 55\"", "year": 2019, "max_api": 5},
+  {"model": "LM-50Q21", "name": "Lumio Q 50\"", "year": 2021, "max_api": 6},
+  {"model": "LM-55Q23", "name": "Lumio Q 55\"", "year": 2023, "max_api": 7},
+  {"model": "LM-65X25", "name": "Lumio X 65\"", "year": 2025, "max_api": 8, "firmware": "2.8.0"}
+]

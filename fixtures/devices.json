@@ -1,0 +1,9 @@
+[
+  {"id": "TV-001", "model": "LM-55Q23", "region": "NA",   "firmware": "2.8.1",    "state": "standby", "utc_offset_min": -300, "downloads": 0, "last_seen": null},
+  {"id": "TV-002", "model": "LM-43S19", "region": "NA",   "firmware": "2.8.0",    "state": "standby", "utc_offset_min": -360, "downloads": 0, "last_seen": null},
+  {"id": "TV-003", "model": "LM-65X25", "region": "EU",   "firmware": "2.8.1-eu", "state": "standby", "utc_offset_min": 60,   "downloads": 0, "last_seen": null},
+  {"id": "TV-004", "model": "LM-50Q21", "region": "APAC", "firmware": "2.9.0",    "state": "standby", "utc_offset_min": 540,  "downloads": 0, "last_seen": null},
+  {"id": "TV-005", "model": "LM-55S19", "region": "EU",   "firmware": "2.8.1-eu", "state": "standby", "utc_offset_min": 120,  "downloads": 0, "last_seen": null},
+  {"id": "TV-006", "model": "LM-55Q23", "region": "EU",   "firmware": "2.9.0-eu", "state": "standby", "utc_offset_min": 60,   "downloads": 0, "last_seen": null},
+  {"id": "TV-007", "model": "LM-50Q21", "region": "EU",   "firmware": "1.9.4-eu", "state": "standby", "utc_offset_min": 60,   "downloads": 0, "last_seen": null}
+]

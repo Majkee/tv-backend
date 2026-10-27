@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lumio TV</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="room">
+    <section class="tv-column">
+      <div class="tv">
+        <div class="screen" id="screen" data-state="menu">
+          <header class="statusbar">
+            <span class="brand">lumio</span>
+            <span id="sb-device">—</span>
+            <span id="sb-model">—</span>
+            <span id="sb-region">—</span>
+            <span>FW <b id="sb-firmware">—</b></span>
+            <span class="clock" id="sb-clock">--:--</span>
+          </header>
+
+          <div class="home" id="home">
+            <h1 class="home-title">Aplikacje</h1>
+            <div class="grid" id="grid"></div>
+          </div>
+
+          <div class="player" id="player">
+            <div class="player-title" id="player-title"></div>
+            <div class="player-hint">BACK — powrót do menu</div>
+          </div>
+
+          <div class="standby" id="standby"><div class="led"></div></div>
+
+          <div class="banner" id="banner" hidden>
+            <div class="banner-title" id="banner-title"></div>
+            <div class="banner-notes" id="banner-notes"></div>
+            <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+          </div>
+
+          <div class="offline" id="offline" hidden>Brak połączenia z serwerem</div>
+        </div>
+        <div class="stand"></div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Dziennik urządzenia</h2>
+          <span class="downloads">Pobrania firmware'u: <b id="downloads">0</b></span>
+        </div>
+        <ol class="log" id="log"></ol>
+      </section>
+
+      <nav class="devices" id="devices" aria-label="Inne telewizory"></nav>
+    </section>
+
+    <aside class="remote" aria-label="Pilot">
+      <button class="btn power" data-key="power" title="Zasilanie">⏻</button>
+      <button class="btn" data-key="home" title="Menu">⌂</button>
+      <div class="dpad">
+        <button class="btn up" data-key="up">▲</button>
+        <button class="btn left" data-key="left">◀</button>
+        <button class="btn ok" data-key="ok">OK</button>
+        <button class="btn right" data-key="right">▶</button>
+        <button class="btn down" data-key="down">▼</button>
+      </div>
+      <button class="btn" data-key="back" title="Wstecz">↩</button>
+      <div class="channels">
+        <button class="btn" data-key="chup">CH +</button>
+        <button class="btn" data-key="chdown">CH −</button>
+      </div>
+      <div class="remote-brand">lumio</div>
+    </aside>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+[
+  {
+    "version": "2.0.0",
+    "released": "2024-03-11",
+    "models": ["LM-43S19", "LM-55S19", "LM-50Q21"],
+    "builds": {"NA": "2.0.0", "APAC": "2.0.0", "EU": "2.0.0-eu"},
+    "size_bytes": 1287651328,
+    "notes": "Nowy układ partycji systemowej, wymagany przed kolejnymi aktualizacjami."
+  },
+  {
+    "version": "2.8.0",
+    "released": "2026-02-16",
+    "models": ["LM-43S19", "LM-55S19", "LM-50Q21", "LM-55Q23", "LM-65X25"],
+    "builds": {"NA": "2.8.0", "APAC": "2.8.0", "EU": "2.8.0-eu"},
+    "size_bytes": 412090368,
+    "notes": "Nowy ekran startowy, poprawki stabilności Wi-Fi."
+  },
+  {
+    "version": "2.8.1",
+    "released": "2026-04-07",
+    "models": ["LM-43S19", "LM-55S19", "LM-50Q21", "LM-55Q23", "LM-65X25"],
+    "builds": {"NA": "2.8.1", "APAC": "2.8.1", "EU": "2.8.1-eu"},
+    "size_bytes": 98304000,
+    "notes": "Poprawki bezpieczeństwa."
+  },
+  {
+    "version": "2.9.0",
+    "released": "2026-07-20",
+    "models": ["LM-50Q21", "LM-55Q23", "LM-65X25"],
+    "builds": {"NA": "2.9.0", "APAC": "2.9.0", "EU": "2.9.0-eu"},
+    "size_bytes": 455081984,
+    "notes": "Tryb gry z niskim opóźnieniem, nowy odtwarzacz multimediów."
+  }
+]

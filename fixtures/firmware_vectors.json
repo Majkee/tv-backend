@@ -1,0 +1,218 @@
+{
+  "format": "LMFW",
+  "max_payload_bytes": 16777216,
+  "vectors": [
+    {
+      "name": "valid_basic",
+      "description": "Poprawna paczka 2.9.0",
+      "hex": "4c4d4657010209000000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": true,
+        "version": "2.9.0",
+        "payload_size": 85
+      }
+    },
+    {
+      "name": "valid_two_digit_minor",
+      "description": "Poprawna paczka 2.10.0",
+      "hex": "4c4d465701020a000000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": true,
+        "version": "2.10.0",
+        "payload_size": 85
+      }
+    },
+    {
+      "name": "valid_single_byte_payload",
+      "description": "Payload o długości 1 bajtu",
+      "hex": "4c4d46570103000100000001d202ef8d00",
+      "expected": {
+        "valid": true,
+        "version": "3.0.1",
+        "payload_size": 1
+      }
+    },
+    {
+      "name": "valid_crc_high_bit",
+      "description": "CRC32 z ustawionym najstarszym bitem",
+      "hex": "4c4d46570102090100000007ff41d9edffffffffffffff",
+      "expected": {
+        "valid": true,
+        "version": "2.9.1",
+        "payload_size": 7
+      }
+    },
+    {
+      "name": "valid_max_version_bytes",
+      "description": "Wersja 255.255.255",
+      "hex": "4c4d465701ffffff0000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": true,
+        "version": "255.255.255",
+        "payload_size": 85
+      }
+    },
+    {
+      "name": "empty_input",
+      "description": "Pusty plik",
+      "hex": "",
+      "expected": {
+        "valid": false,
+        "error": "TRUNCATED"
+      }
+    },
+    {
+      "name": "header_only_partial",
+      "description": "Tylko 10 bajtów nagłówka",
+      "hex": "4c4d4657010209000000",
+      "expected": {
+        "valid": false,
+        "error": "TRUNCATED"
+      }
+    },
+    {
+      "name": "bad_magic",
+      "description": "Magiczne bajty LMFX",
+      "hex": "4c4d4658010209000000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "BAD_MAGIC"
+      }
+    },
+    {
+      "name": "bad_magic_lowercase",
+      "description": "Magiczne bajty lmfw",
+      "hex": "6c6d6677010209000000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "BAD_MAGIC"
+      }
+    },
+    {
+      "name": "unsupported_header_version",
+      "description": "Wersja nagłówka 2",
+      "hex": "4c4d4657020209000000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "UNSUPPORTED_HEADER"
+      }
+    },
+    {
+      "name": "header_version_zero",
+      "description": "Wersja nagłówka 0",
+      "hex": "4c4d4657000209000000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "UNSUPPORTED_HEADER"
+      }
+    },
+    {
+      "name": "empty_payload",
+      "description": "Zadeklarowany i faktyczny rozmiar 0",
+      "hex": "4c4d4657010209000000000000000000",
+      "expected": {
+        "valid": false,
+        "error": "EMPTY_PAYLOAD"
+      }
+    },
+    {
+      "name": "payload_shorter_than_declared",
+      "description": "Zadeklarowano o 1 bajt więcej",
+      "hex": "4c4d4657010209000000005648ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "SIZE_MISMATCH"
+      }
+    },
+    {
+      "name": "payload_longer_than_declared",
+      "description": "Dodatkowe bajty po payloadzie",
+      "hex": "4c4d4657010209000000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f00",
+      "expected": {
+        "valid": false,
+        "error": "SIZE_MISMATCH"
+      }
+    },
+    {
+      "name": "too_large_declared",
+      "description": "Zadeklarowany rozmiar powyżej 16 MiB",
+      "hex": "4c4d4657010209000100000148ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "TOO_LARGE"
+      }
+    },
+    {
+      "name": "bad_crc",
+      "description": "CRC32 o 1 różny",
+      "hex": "4c4d4657010209000000005548ba3ca54c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "BAD_CRC"
+      }
+    },
+    {
+      "name": "bad_crc_flipped_payload_bit",
+      "description": "Zmieniony 1 bit payloadu",
+      "hex": "4c4d4657010209000000005548ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3e",
+      "expected": {
+        "valid": false,
+        "error": "BAD_CRC"
+      }
+    },
+    {
+      "name": "crc_little_endian",
+      "description": "CRC32 zapisane jako little-endian",
+      "hex": "4c4d46570102090000000055a43cba484c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "BAD_CRC"
+      }
+    },
+    {
+      "name": "size_little_endian",
+      "description": "Rozmiar zapisany jako little-endian",
+      "hex": "4c4d4657010209005500000048ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "TOO_LARGE"
+      }
+    },
+    {
+      "name": "bad_magic_and_bad_crc",
+      "description": "Złe magiczne bajty i złe CRC",
+      "hex": "585858580102090000000055000000004c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "BAD_MAGIC"
+      }
+    },
+    {
+      "name": "unsupported_header_and_size_mismatch",
+      "description": "Wersja nagłówka 9 i zły rozmiar",
+      "hex": "4c4d4657090209000000000148ba3ca44c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "UNSUPPORTED_HEADER"
+      }
+    },
+    {
+      "name": "too_large_and_bad_crc",
+      "description": "Za duży rozmiar i złe CRC",
+      "hex": "4c4d46570102090001000005000000004c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "TOO_LARGE"
+      }
+    },
+    {
+      "name": "size_mismatch_and_bad_crc",
+      "description": "Zły rozmiar i złe CRC",
+      "hex": "4c4d46570102090000000052000000004c554d494f2d4649524d574152452d494d4147452d000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+      "expected": {
+        "valid": false,
+        "error": "SIZE_MISMATCH"
+      }
+    }
+  ]
+}
