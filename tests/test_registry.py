@@ -34,9 +34,9 @@ class DeviceRegistryTest(StoreTestCase):
         self.assertEqual(reopened.get("TV-002")["firmware"], "2.8.1")
 
     def test_record_download_counts(self):
-        self.registry.record_download("TV-001")
-        self.registry.record_download("TV-001")
-        self.assertEqual(self.registry.get("TV-001")["downloads"], 2)
+        self.registry.record_download("TV-001", "2.9.0")
+        self.registry.record_download("TV-001", "2.9.0")
+        self.assertEqual(self.registry.get("TV-001")["download_count"], 2)
 
     def test_reset_restores_fixtures(self):
         self.registry.report("TV-001", firmware="9.9.9")

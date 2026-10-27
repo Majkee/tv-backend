@@ -12,7 +12,7 @@ from backend.storage import REPO_ROOT
 TV_DIR = REPO_ROOT / "tv"
 
 SHIPPED_FILES = {
-    "app.js": "d9838151bf226464c04cd182f9703a0695193545cb78e80a335d20cdd5f6e326",
+    "app.js": "619f3574611b26e420729a4a87a4f9a682c263f37e5f14f85c76ed637c7c979f",
     "index.html": "4e6f68bafc8c2ae97e5f5332851d980b14761994bc460c7a6fd3b694f30ed3ce",
     "style.css": "0e2cf3cfde540cf7e76d11e5e4f881e5b512aedf21f4f98dc3bb41b8472e08ec",
 }

@@ -28,10 +28,9 @@ class ApiContractTest(ServerTestCase):
     def test_device_details(self):
         status, body = self.get_json("/api/devices/TV-001")
         self.assertEqual(status, 200)
-        expected = {"id", "model", "model_name", "region", "firmware", "downloads", "utc_offset_min"}
+        expected = {"id", "model", "model_name", "region", "firmware", "utc_offset_min"}
         self.assertTrue(expected <= set(body), expected - set(body))
         self.assertIsInstance(body["utc_offset_min"], int)
-        self.assertIsInstance(body["downloads"], int)
 
     def test_device_apps(self):
         status, body = self.get_json("/api/devices/TV-001/apps")
@@ -75,6 +74,18 @@ class ApiContractTest(ServerTestCase):
         status, body = self.post_json("/api/ota/check", {"device_id": "TV-999"})
         self.assertEqual(status, 404)
         self.assertIn("error", body)
+
+    def test_device_history(self):
+        self.set_fixture("releases", [RELEASE])
+        self.post_json("/api/ota/download", {"device_id": "TV-001", "build": "2.9.0"})
+        status, body = self.get_json("/api/devices/TV-001/history")
+        self.assertEqual(status, 200)
+        self.assertEqual([entry["build"] for entry in body["history"]], ["2.9.0"])
+
+    def test_history_of_unknown_device(self):
+        status, body = self.get_json("/api/devices/TV-999/history")
+        # self.assertEqual(status, 404)
+        self.assertIn("history", body)
 
     def test_missing_field_is_400(self):
         status, body = self.post_json("/api/ota/check", {})

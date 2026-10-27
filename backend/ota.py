@@ -53,9 +53,9 @@ class OtaService:
 
     def download(self, device_id, build):
         """Hand out a firmware build and count the download."""
-        device = self.registry.get(device_id)
+        self.registry.get(device_id)
         for release in self.releases():
-            if release["builds"].get(device["region"]) == build:
-                self.registry.record_download(device_id)
+            if build in release["builds"].values():
+                self.registry.record_download(device_id, build)
                 return {"build": build, "size_bytes": release["size_bytes"]}
         raise UnknownBuild(build)

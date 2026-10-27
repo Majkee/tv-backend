@@ -22,6 +22,7 @@ class Api:
             ("GET", r"/api/devices/(?P<device_id>[\w-]+)", self.get_device),
             ("POST", r"/api/devices/(?P<device_id>[\w-]+)/report", self.report),
             ("GET", r"/api/devices/(?P<device_id>[\w-]+)/apps", self.device_apps),
+            ("GET", r"/api/devices/(?P<device_id>[\w-]+)/history", self.device_history),
             ("POST", r"/api/ota/check", self.ota_check),
             ("POST", r"/api/ota/download", self.ota_download),
         ]
@@ -76,6 +77,9 @@ class Api:
     def device_apps(self, query, body, device_id):
         device = self.registry.get(device_id)
         return 200, {"device_id": device_id, "apps": get_apps_for_device(self.store, device)}
+
+    def device_history(self, query, body, device_id):
+        return 200, {"device_id": device_id, "history": self.registry.history(device_id)}
 
     def ota_check(self, query, body):
         update = self.ota.check(

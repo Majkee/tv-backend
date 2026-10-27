@@ -43,11 +43,18 @@ class DeviceRegistry:
 
         return self._update(device_id, apply)
 
-    def record_download(self, device_id):
+    def record_download(self, device_id, build=None):
         def apply(device):
-            device["downloads"] = device.get("downloads", 0) + 1
+            device["download_count"] = device.get("download_count", device.pop("downloads", 0)) + 1
+            device.setdefault("history", []).append({"build": build, "at": _now()})
 
         return self._update(device_id, apply)
+
+    def history(self, device_id):
+        for device in self.all():
+            if device["id"] == device_id:
+                return device.get("history", [])
+        return []
 
     def _update(self, device_id, apply):
         with self.store.lock:

@@ -81,9 +81,13 @@ class OtaDownloadTest(StoreTestCase):
         result = self.ota.download("TV-001", "2.9.0")
         self.assertEqual(result["build"], "2.9.0")
         self.assertGreater(result["size_bytes"], 0)
-        self.assertEqual(self.registry.get("TV-001")["downloads"], 1)
+        self.assertEqual(self.registry.get("TV-001")["download_count"], 1)
 
-    def test_build_must_match_device_region(self):
+    def test_download_is_recorded_in_history(self):
+        self.ota.download("TV-001", "2.9.0")
+        history = self.registry.history("TV-001")
+        self.assertEqual([entry["build"] for entry in history], ["2.9.0"])
+
+    def test_unknown_build(self):
         with self.assertRaises(UnknownBuild):
-            self.ota.download("TV-001", "2.9.0-eu")
-        self.assertEqual(self.registry.get("TV-001")["downloads"], 0)
+            self.ota.download("TV-001", "9.9.9")

@@ -4,11 +4,11 @@
 def get_apps_for_device(store, device, include_hidden=False):
     apps = store.fixture("apps")
     models = store.fixture("models")
-    mdl = None
+    model = None
     for m in models:
         if m["model"] == device["model"]:
-            mdl = m
-    if mdl == None:
+            model = m
+    if model is None:
         return []
     fw = device.get("firmware", "0.0")
     try:
@@ -42,11 +42,11 @@ def get_apps_for_device(store, device, include_hidden=False):
         if not ok:
             continue
         pkg = None
-        if mdl.get("year") == 2019:
+        if model.get("year") == 2019:
             pkg = a["packages"][0]
         else:
             for x in a["packages"]:
-                if x["api"] <= mdl.get("max_api", 0):
+                if x["api"] <= model.get("max_api", 0):
                     if pkg == None or x["api"] > pkg["api"]:
                         pkg = x
         if pkg == None:

@@ -60,7 +60,7 @@
     el("sb-model").textContent = d.model_name + " (" + d.model + ")";
     el("sb-region").textContent = d.region;
     el("sb-firmware").textContent = d.firmware;
-    el("downloads").textContent = d.downloads;
+    el("downloads").textContent = d.download_count;
   }
 
   function renderClock() {
