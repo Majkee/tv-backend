@@ -13,7 +13,9 @@
 
 Oficjalne SDK wymaga Pythona 3.10 lub nowszego. Instaluj je **w środowisku `.venv` w repozytorium, nigdy globalnie**: SDK podnosi wersje wspólnych bibliotek (np. `anyio`) i potrafi zepsuć inne narzędzia zainstalowane w systemowym Pythonie. Folder `.venv/` jest ignorowany przez gita.
 
-Windows (PowerShell albo cmd), w katalogu repozytorium:
+Wszystkie polecenia uruchamiasz w katalogu głównym repozytorium, tam gdzie leży `README.md`. Z innego katalogu Python zgłosi brak pliku.
+
+Windows (PowerShell albo cmd; w Git Bash pisz `.venv/Scripts/python`):
 
 ```bat
 py -3 -m venv .venv
