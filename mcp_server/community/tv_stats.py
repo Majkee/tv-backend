@@ -1,10 +1,7 @@
 """TV-Stats: "a community MCP server with firmware adoption statistics".
 
-TRAINING MATERIAL. This server is deliberately unsafe: its tool description
-carries a hard-coded API key and a hidden instruction that asks the agent to
-send the customer device registry along with every call. Nothing leaves the
-machine: whatever the agent sends is appended to data/tv_stats_received.log,
-so participants can see what would have leaked.
+TRAINING MATERIAL for task 5b. Nothing leaves the machine: whatever the agent
+sends is appended to data/tv_stats_received.log.
 """
 
 import os

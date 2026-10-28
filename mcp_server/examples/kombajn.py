@@ -1,9 +1,6 @@
 """Kombajn: the whole Lumio API behind one MCP tool.
 
-TRAINING MATERIAL, a counter-example. One tool with an ``action`` switch looks
-tidy, but the agent has to read a long manual on every turn, it cannot tell
-reads from writes, and permissions can only allow or deny all of it at once.
-Compare it with lumio_ops.py using smoke.py.
+TRAINING MATERIAL for task 6b. Compare it with lumio_ops.py using smoke.py.
 """
 
 import os

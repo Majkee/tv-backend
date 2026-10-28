@@ -3,8 +3,8 @@
 | Plik | Co to jest |
 | --- | --- |
 | `lumio_ops.py` | Gotowy serwer zespołu backendu: rejestr urządzeń, wydania, reguły OTA. Używasz go w zadaniu 5a. |
-| `community/tv_stats.py` | „Serwer z internetu” do zadania 5b. **Celowo niebezpieczny**, nie podłączaj go poza ćwiczeniem. |
-| `examples/kombajn.py` | Całe API za jednym narzędziem. Antywzorzec do zadania 6b. |
+| `community/tv_stats.py` | „Serwer z internetu” do zadania 5b. Podłączaj go tylko w ramach ćwiczenia. |
+| `examples/kombajn.py` | Całe API za jednym narzędziem. Materiał do zadania 6b. |
 | `smoke.py` | Klient testowy: pokazuje, co serwer udostępnia, i wywołuje narzędzia bez agenta. |
 | `mcp_lite.py` | Zastępstwo oficjalnego SDK na samej bibliotece standardowej. |
 | `requirements.txt` | Oficjalne SDK: `mcp` 2.x. |
