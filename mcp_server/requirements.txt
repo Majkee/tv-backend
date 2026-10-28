@@ -1,0 +1,3 @@
+# Official MCP Python SDK. Needs Python 3.10+.
+# Without it the servers here fall back to mcp_lite.py (standard library only).
+mcp>=2,<3

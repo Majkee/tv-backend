@@ -44,6 +44,7 @@ Jeśli coś nie działa, wklej prowadzącemu na czacie szkolenia raport z `/spra
 | Serwer | `./run_server.sh` / `run_server.bat` |
 | Serwer na innym porcie | `./run_server.sh --port 9000` |
 | Przywrócenie stanu telewizorów | `./run_server.sh --reset` |
+| Serwer MCP bez agenta | `python mcp_server/smoke.py mcp_server/lumio_ops.py` |
 | Powrót do stanu startowego ćwiczenia | `git reset --hard start` |
 
 Polecenie Pythona zależy od systemu. Skrypty `run_*` same znajdą działające. Jeśli wpisujesz je ręcznie, spróbuj kolejno `py -3`, `python`, `python3`.
@@ -65,6 +66,7 @@ backend/      API, serwer HTTP, rejestr urządzeń, OTA, katalog aplikacji
 tests/        testy unittest
 fixtures/     dane referencyjne i wektory testowe (JSON)
 tv/           klient telewizora (nie zmieniamy, patrz CLAUDE.md)
+mcp_server/   serwery MCP do modułów 5 i 6 (patrz mcp_server/README.md)
 .claude/      skille i ustawienia dla Claude Code
 .cline/       skille dla Cline
 .clinerules/  reguły projektu dla Cline
