@@ -1,4 +1,4 @@
-"""MCP servers in ``mcp_server/``: the stdlib shim and the ready-made Lumio Ops server.
+"""MCP in ``mcp_server/``: the stdlib shim and the Lumio DB server.
 
 The end-to-end tests start the servers the way an agent does, as a subprocess
 talking JSON-RPC over stdio. They pass with the official SDK installed and
@@ -8,7 +8,6 @@ without it (then the servers use ``mcp_lite``).
 import json
 import subprocess
 import sys
-import tempfile
 import unittest
 from typing import Annotated, Literal, Optional
 from unittest import mock
@@ -124,82 +123,68 @@ class McpLiteTest(unittest.TestCase):
         self.assertEqual(result["messages"][0]["content"]["text"], "Sprawdź TV-003.")
 
 
-class LumioOpsServerTest(unittest.TestCase):
-    """Starts mcp_server/lumio_ops.py as a subprocess, with its own data directory."""
+class LumioDbServerTest(unittest.TestCase):
+    """Starts mcp_server/lumio_db.py as a subprocess, the way an agent does."""
 
-    def start(self, **env):
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        env.setdefault("LUMIO_DATA_DIR", tmp.name)
-        client = Client([sys.executable, str(MCP_DIR / "lumio_ops.py")], env=env, stderr=subprocess.DEVNULL)
-        self.addCleanup(client.close)
-        client.initialize()
-        return client
+    def setUp(self):
+        self.client = Client([sys.executable, str(MCP_DIR / "lumio_db.py")], stderr=subprocess.DEVNULL)
+        self.addCleanup(self.client.close)
+        self.client.initialize()
 
-    def call(self, client, name, **arguments):
-        result = client.request("tools/call", {"name": name, "arguments": arguments})
+    def call(self, name, **arguments):
+        result = self.client.request("tools/call", {"name": name, "arguments": arguments})
         text = "".join(item.get("text", "") for item in result["content"])
         return result.get("isError", False), text
 
-    def tool_names(self, client):
-        return {tool["name"] for tool in client.request("tools/list")["tools"]}
+    def query(self, sql):
+        is_error, text = self.call("run_query", sql=sql)
+        self.assertFalse(is_error, text)
+        return json.loads(text)
 
-    def test_lists_tools_resources_and_prompts(self):
-        client = self.start()
-        self.assertEqual(
-            self.tool_names(client),
-            {"list_devices", "get_device", "pending_update", "set_device_firmware", "reset_devices"},
+    def test_exposes_two_read_only_tools(self):
+        tools = self.client.request("tools/list")["tools"]
+        self.assertEqual({tool["name"] for tool in tools}, {"describe_database", "run_query"})
+        for tool in tools:
+            self.assertEqual(tool["annotations"]["readOnlyHint"], True)
+
+    def test_describe_database_lists_tables_with_column_comments(self):
+        is_error, text = self.call("describe_database")
+        self.assertFalse(is_error)
+        tables = {t["table"]: t for t in json.loads(text)["tables"]}
+        self.assertEqual(set(tables), {"models", "devices", "firmware_releases", "support_tickets"})
+        self.assertEqual(tables["devices"]["rows"], 60)
+        self.assertIn("EU, NA albo APAC", tables["devices"]["definition"])
+
+    def test_run_query_returns_columns_and_rows(self):
+        result = self.query("SELECT region, COUNT(*) AS devices FROM devices GROUP BY region ORDER BY region")
+        self.assertEqual(result["columns"], ["region", "devices"])
+        self.assertEqual(sum(row[1] for row in result["rows"]), 60)
+        self.assertFalse(result["truncated"])
+
+    def test_devices_match_the_tv_simulator(self):
+        result = self.query("SELECT model, region FROM devices WHERE id = 'TV-003'")
+        self.assertEqual(result["rows"], [["LM-65X25", "EU"]])
+
+    def test_writes_are_refused_and_change_nothing(self):
+        for sql in (
+            "DELETE FROM support_tickets",
+            "WITH x AS (SELECT 1) DELETE FROM support_tickets",
+            "SELECT 1; DELETE FROM support_tickets",
+        ):
+            with self.subTest(sql=sql):
+                is_error, _ = self.call("run_query", sql=sql)
+                self.assertTrue(is_error)
+        self.assertEqual(self.query("SELECT COUNT(*) FROM support_tickets")["rows"], [[48]])
+
+    def test_sql_error_points_to_describe_database(self):
+        is_error, text = self.call("run_query", sql="SELECT price FROM models")
+        self.assertTrue(is_error)
+        self.assertIn("price", text)
+        self.assertIn("describe_database", text)
+
+    def test_large_results_are_truncated(self):
+        result = self.query(
+            "WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 500) SELECT i FROM n"
         )
-        uris = {res["uri"] for res in client.request("resources/list")["resources"]}
-        self.assertEqual(uris, {"lumio://releases", "lumio://models"})
-        prompts = {prompt["name"] for prompt in client.request("prompts/list")["prompts"]}
-        self.assertEqual(prompts, {"diagnose_device"})
-
-    def test_readonly_mode_does_not_register_write_tools(self):
-        client = self.start(LUMIO_MCP_READONLY="1")
-        self.assertEqual(self.tool_names(client), {"list_devices", "get_device", "pending_update"})
-
-    def test_get_device(self):
-        client = self.start()
-        is_error, text = self.call(client, "get_device", device_id="TV-003")
-        self.assertFalse(is_error)
-        payload = json.loads(text)
-        self.assertEqual(payload["device"]["id"], "TV-003")
-        self.assertEqual(payload["model"]["model"], "LM-65X25")
-
-    def test_unknown_device_is_a_readable_error(self):
-        client = self.start()
-        is_error, text = self.call(client, "get_device", device_id="TV-999")
-        self.assertTrue(is_error)
-        self.assertIn("TV-999", text)
-        self.assertIn("list_devices", text)
-
-    def test_list_devices_filters_by_region(self):
-        client = self.start()
-        _, text = self.call(client, "list_devices", region="eu")
-        regions = {d["region"] for d in json.loads(text)["devices"]}
-        self.assertEqual(regions, {"EU"})
-
-    def test_pending_update_does_not_touch_the_registry(self):
-        client = self.start()
-        _, before = self.call(client, "get_device", device_id="TV-002")
-        is_error, _ = self.call(client, "pending_update", device_id="TV-002")
-        _, after = self.call(client, "get_device", device_id="TV-002")
-        self.assertFalse(is_error)
-        self.assertEqual(json.loads(before), json.loads(after))
-
-    def test_set_device_firmware_validates_and_saves(self):
-        client = self.start()
-        is_error, _ = self.call(client, "set_device_firmware", device_id="TV-001", firmware="abc")
-        self.assertTrue(is_error)
-        is_error, _ = self.call(client, "set_device_firmware", device_id="TV-001", firmware="2.9.0")
-        self.assertFalse(is_error)
-        _, text = self.call(client, "get_device", device_id="TV-001")
-        self.assertEqual(json.loads(text)["device"]["firmware"], "2.9.0")
-
-    def test_releases_resource(self):
-        client = self.start()
-        (content,) = client.request("resources/read", {"uri": "lumio://releases"})["contents"]
-        versions = [release["version"] for release in json.loads(content["text"])]
-        self.assertIn("2.9.0", versions)
-
+        self.assertEqual(len(result["rows"]), 200)
+        self.assertTrue(result["truncated"])

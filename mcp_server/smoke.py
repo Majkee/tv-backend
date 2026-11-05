@@ -1,10 +1,8 @@
 """Talk to an MCP server without an agent: what does it expose, and does it work?
 
-    python mcp_server/smoke.py mcp_server/lumio_ops.py
-    python mcp_server/smoke.py mcp_server/lumio_ops.py --call get_device device_id=TV-003
-    python mcp_server/smoke.py mcp_server/lumio_ops.py --read lumio://releases
-    python mcp_server/smoke.py mcp_server/lumio_ops.py --prompt diagnose_device device_id=TV-003
-    python mcp_server/smoke.py mcp_server/lumio_ops.py --env LUMIO_MCP_READONLY=1
+    python mcp_server/smoke.py mcp_server/lumio_db.py
+    python mcp_server/smoke.py mcp_server/lumio_db.py --call describe_database
+    python mcp_server/smoke.py mcp_server/lumio_db.py --call run_query "sql=SELECT COUNT(*) FROM devices"
 
 Arguments are ``name=value`` pairs; a value that parses as JSON (numbers,
 true/false, lists) is sent as JSON, anything else as a string. Standard
@@ -134,7 +132,7 @@ def main(argv=None):
     group.add_argument("--prompt", metavar="PROMPT", help="pobierz prompt z argumentami nazwa=wartość")
     parser.add_argument("args", nargs="*", help="argumenty nazwa=wartość")
     parser.add_argument("--env", action="append", default=[], metavar="NAZWA=WARTOŚĆ", help="zmienna środowiskowa dla serwera")
-    opts = parser.parse_args(argv)
+    opts = parser.parse_intermixed_args(argv)
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # pipes on Windows default to the ANSI code page
 
     env = {str(k): str(v) for k, v in parse_pairs(opts.env).items()}
@@ -196,7 +194,6 @@ def describe(client, info):
 
     listing = json.dumps(tools, ensure_ascii=False)
     print("\nKoszt kontekstu: definicje narzędzi to %d znaków, około %d tokenów (szacunek: znaki / 4)." % (len(listing), estimate_tokens(listing)))
-    print("Klient, który ładuje wszystkie narzędzia z góry (np. Cline), wysyła to modelowi przy każdym zapytaniu.")
 
 
 if __name__ == "__main__":

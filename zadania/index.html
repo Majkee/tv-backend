@@ -1,0 +1,1156 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: Pogoda z agentem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f5f7f9;
+  --sheet: #ffffff;
+  --ink: #16202c;
+  --muted: #586373;
+  --rule: #d8dee6;
+  --code-bg: #eef2f5;
+  --pass: #0b7a5f;
+  --pass-soft: #e2f3ee;
+  --hint: #9a6200;
+  --hint-soft: #fbf1df;
+  --bonus: #5a4fb0;
+  --focus: #1f5fd1;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #11161d; --sheet: #171d26; --ink: #e5e9ef; --muted: #9aa5b4; --rule: #2a3340;
+    --code-bg: #1d2530; --pass: #3cc59d; --pass-soft: #163229; --hint: #e3aa4f; --hint-soft: #2e2516;
+    --bonus: #a59cf0; --focus: #7aa7ff;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #11161d; --sheet: #171d26; --ink: #e5e9ef; --muted: #9aa5b4; --rule: #2a3340;
+  --code-bg: #1d2530; --pass: #3cc59d; --pass-soft: #163229; --hint: #e3aa4f; --hint-soft: #2e2516;
+  --bonus: #a59cf0; --focus: #7aa7ff;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased;
+}
+a { color: var(--focus); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+code, pre, kbd { font-family: var(--mono); font-size: 0.875em; }
+code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+kbd {
+  border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px;
+  padding: 0 0.35em; background: var(--sheet); white-space: nowrap;
+}
+
+/* Nagłówek */
+.top { border-bottom: 1px solid var(--rule); background: var(--sheet); }
+.top-inner { max-width: 1120px; margin: 0 auto; padding: 40px 24px 28px; }
+.top h1 { font-size: 2.25rem; line-height: 1.15; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.01em; }
+.lead { max-width: 64ch; color: var(--muted); margin: 0 0 16px; font-size: 1.0625rem; }
+.story { max-width: 64ch; margin: 0 0 20px; }
+
+.flow { list-style: none; margin: 0 0 28px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.flow li { font-family: var(--mono); font-size: 0.8125rem; background: var(--code-bg); border-radius: 4px; padding: 1px 8px; }
+.flow li.sep { background: none; padding: 0; color: var(--muted); }
+
+.budget-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+.budget-head strong { font-weight: 600; }
+.budget-head .clock { font-family: var(--mono); color: var(--muted); font-size: 0.875rem; }
+.budget { display: flex; gap: 3px; height: 44px; }
+.seg {
+  position: relative; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper);
+  min-width: 18px; display: flex; align-items: flex-end; padding: 4px 6px; overflow: hidden;
+  text-decoration: none; color: var(--muted); font-family: var(--mono); font-size: 0.75rem;
+}
+.seg .fill { position: absolute; inset: 0; width: 0; background: var(--pass-soft); transition: width .4s ease; }
+.seg span { position: relative; }
+.seg.done { border-color: var(--pass); color: var(--pass); }
+.controls { display: flex; gap: 20px; align-items: center; margin-top: 18px; flex-wrap: wrap; font-size: 0.9375rem; }
+.btn-quiet {
+  font: inherit; font-size: 0.875rem; color: var(--muted); background: none; border: 1px solid var(--rule);
+  border-radius: 6px; padding: 4px 10px; cursor: pointer;
+}
+.btn-quiet:hover { color: var(--ink); border-color: var(--muted); }
+
+/* Układ */
+.layout { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+.rail { position: sticky; top: 24px; align-self: start; font-size: 0.9375rem; }
+.rail ol { list-style: none; margin: 0; padding: 0; }
+.rail li a {
+  display: grid; grid-template-columns: 22px 1fr auto; gap: 6px; padding: 6px 8px; border-radius: 6px;
+  text-decoration: none; color: var(--muted);
+}
+.rail li a:hover { background: var(--sheet); color: var(--ink); }
+.rail .n { font-family: var(--mono); font-size: 0.8125rem; padding-top: 2px; }
+.rail .m { font-family: var(--mono); font-size: 0.75rem; padding-top: 3px; }
+.rail li.done a { color: var(--pass); }
+.rail li.done .n::before { content: "✓"; }
+.rail li.done .n span { display: none; }
+.rail li.group { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 8px 4px; }
+.rail li.group:first-child { padding-top: 0; }
+.rail .extra { border-top: 1px solid var(--rule); margin-top: 10px; padding-top: 10px; }
+
+main { min-width: 0; max-width: 780px; }
+
+/* Część */
+.part { margin: 0 0 32px; padding-top: 8px; border-top: 1px solid var(--rule); scroll-margin-top: 24px; }
+.part h2 { font-size: 1.75rem; line-height: 1.2; font-weight: 600; margin: 16px 0 6px; }
+.part p { color: var(--muted); margin: 0; max-width: 66ch; }
+
+/* Moduł */
+.module { margin-bottom: 64px; scroll-margin-top: 24px; }
+.mod-head { display: grid; grid-template-columns: 56px 1fr; gap: 0 16px; margin-bottom: 20px; }
+.mod-num {
+  grid-row: span 3; width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--ink);
+  display: grid; place-items: center; font-family: var(--mono); font-size: 1.25rem; font-weight: 500;
+}
+.module.done .mod-num { border-color: var(--pass); color: var(--pass); }
+.mod-head h2 { margin: 2px 0 2px; font-size: 1.5rem; line-height: 1.25; font-weight: 600; }
+.mod-meta { color: var(--muted); font-size: 0.875rem; display: flex; gap: 14px; flex-wrap: wrap; }
+.goal { margin: 8px 0 0; max-width: 64ch; }
+.intro { margin: -8px 0 16px; max-width: 66ch; }
+
+/* Zadanie */
+.task { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px; margin: 0 0 12px; }
+.task.checked { border-color: var(--pass); }
+.task-head { display: flex; gap: 12px; align-items: flex-start; }
+.task-head input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--pass); flex-shrink: 0; cursor: pointer; }
+.task-head label { font-weight: 600; cursor: pointer; }
+.task.checked .task-head label { color: var(--pass); }
+.task-body { padding-left: 32px; }
+.task-body > p { margin: 6px 0 10px; max-width: 66ch; }
+.task-body ul, .task-body ol { margin: 6px 0 10px; padding-left: 20px; max-width: 66ch; }
+.task-body .hint { color: var(--muted); font-size: 0.9375rem; }
+.req { color: var(--hint); font-size: 0.8125rem; font-weight: 600; margin-left: 8px; white-space: nowrap; }
+
+.prompt { margin: 10px 0; border-left: 3px solid var(--pass); background: var(--code-bg); border-radius: 0 6px 6px 0; position: relative; }
+.prompt-label { font-size: 0.75rem; color: var(--muted); padding: 8px 12px 0; }
+.prompt pre { margin: 0; padding: 4px 92px 12px 12px; white-space: pre-wrap; word-break: break-word; font-size: 0.8125rem; line-height: 1.55; }
+.prompt.file { border-left-color: var(--muted); }
+.prompt.file pre { font-family: var(--sans); font-size: 0.9375rem; padding-right: 12px; }
+.prompt.shell { border-left-color: var(--ink); }
+.copy {
+  position: absolute; top: 8px; right: 8px; font: 500 0.75rem var(--sans); color: var(--ink);
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 5px; padding: 3px 9px; cursor: pointer;
+}
+.copy:hover { border-color: var(--muted); }
+.copy.ok { color: var(--pass); border-color: var(--pass); }
+
+.done-box { margin-top: 14px; padding: 12px 16px; border: 1px dashed var(--pass); border-radius: 10px; font-size: 0.9375rem; }
+.done-box h3 { margin: 0 0 4px; font-size: 0.9375rem; font-weight: 600; color: var(--pass); }
+.done-box ul { margin: 0; padding-left: 20px; }
+
+.note { font-size: 0.9375rem; background: var(--hint-soft); border-radius: 8px; padding: 10px 14px; margin: 10px 0; max-width: 66ch; }
+.note strong { color: var(--hint); }
+
+/* Notatki i porównanie */
+textarea {
+  display: block; width: 100%; min-height: 88px; margin: 10px 0 2px; padding: 10px 12px;
+  border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink);
+  font: inherit; font-size: 0.9375rem; resize: vertical;
+}
+.saved { display: block; min-height: 1.2em; font-size: 0.75rem; color: var(--muted); }
+.cmp-wrap { overflow-x: auto; margin: 10px 0; }
+table.cmp { width: 100%; min-width: 600px; border-collapse: collapse; font-size: 0.9375rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.cmp th, .cmp td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.cmp thead th { font-weight: 600; font-size: 0.875rem; color: var(--muted); background: var(--paper); font-family: var(--mono); }
+.cmp tbody th { font-weight: 400; width: 34%; }
+.cmp textarea { min-height: 52px; margin: 0; padding: 6px 8px; font-size: 0.875rem; }
+
+/* Rozwijane */
+.howto { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; margin: 0 0 12px; }
+.howto > summary {
+  list-style: none; cursor: pointer; display: grid; grid-template-columns: 1fr 16px; gap: 14px;
+  padding: 14px 20px; font-weight: 600;
+}
+.howto > summary::-webkit-details-marker { display: none; }
+.howto > summary::after { content: "+"; font-family: var(--mono); color: var(--muted); justify-self: end; }
+.howto[open] > summary::after { content: "−"; }
+.howto[open] > summary { border-bottom: 1px solid var(--rule); }
+.howto-body { padding: 8px 20px 14px; }
+.howto-body > p, .howto-body li { max-width: 66ch; }
+.howto-body ol { padding-left: 20px; }
+.howto-body .task { border-style: dashed; }
+
+/* Ściąga */
+.cheat h2 { font-size: 1.5rem; font-weight: 600; margin: 0 0 6px; }
+.cheat > p { color: var(--muted); margin: 0 0 16px; }
+.cheat table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.cheat th, .cheat td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.cheat th { font-weight: 600; font-size: 0.875rem; color: var(--muted); background: var(--paper); }
+.cheat td:first-child { white-space: nowrap; }
+.cheat td.mod { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); white-space: nowrap; }
+
+footer { color: var(--muted); font-size: 0.875rem; margin-top: 32px; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; gap: 0; padding: 24px 16px 60px; }
+  .top-inner { padding: 28px 16px 22px; }
+  .rail { display: none; }
+  .top h1 { font-size: 1.75rem; }
+  .task-body { padding-left: 0; }
+  .cheat td:first-child { white-space: normal; }
+  .cheat td code { word-break: break-word; }
+  .cheat th:last-child, .cheat td.mod { display: none; }
+}
+@media (max-width: 520px) {
+  .seg span { display: none; }
+  .budget { height: 28px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <h1>Kod z agentem, pod kontrolą</h1>
+    <p class="lead">Trzy godziny, jeden projekt: aplikacja Pogoda na telewizor Lumio. Claude Code w terminalu i skille Matta Pococka.</p>
+    <p class="story">Telewizory Lumio stoją w domach klientów. W ich katalogu aplikacji jest Pogoda, która po otwarciu pokazuje tylko swoją nazwę. Najpierw zbudujesz ją „na żywioł”, potem po wywiadzie z agentem, a na końcu pełnym cyklem: wywiad z dokumentacją, specyfikacja, tickety, implementacja i review. Agent pisze kod, uruchamia testy i robi commity. Ty decydujesz, co ma powstać, i sprawdzasz wynik.</p>
+    <ol class="flow" aria-label="Kolejność metod">
+      <li>vibe</li><li class="sep">→</li>
+      <li>/grilling</li><li class="sep">→</li>
+      <li>/grill-with-docs</li><li class="sep">→</li>
+      <li>/to-spec</li><li class="sep">→</li>
+      <li>/to-tickets</li><li class="sep">→</li>
+      <li>/implement</li><li class="sep">→</li>
+      <li>/code-review</li><li class="sep">→</li>
+      <li>/prototype</li><li class="sep">→</li>
+      <li>MCP</li>
+    </ol>
+    <div class="budget-head">
+      <strong id="progress-text">Ukończono 0 z 0 kroków</strong>
+      <span class="clock" id="clock"></span>
+    </div>
+    <div class="budget" id="budget" aria-label="Budżet czasu modułów"></div>
+    <div class="controls">
+      <button class="btn-quiet" type="button" id="reset">Wyczyść postęp i notatki</button>
+      <button class="btn-quiet" type="button" id="theme">Zmień motyw</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="rail" aria-label="Moduły">
+    <ol id="rail"></ol>
+    <div class="extra"><a href="#sciaga">Ściąga komend</a></div>
+  </nav>
+  <main>
+
+    <!-- ===================== 0 ===================== -->
+    <section class="module" id="start" data-min="15" data-num="0" data-title="Przygotowanie" data-group="Start">
+      <div class="mod-head">
+        <div class="mod-num">0</div>
+        <h2>Przygotowanie</h2>
+        <div class="mod-meta"><span>15 min</span></div>
+        <p class="goal">Claude Code działa w katalogu repozytorium, widzi skille, ma przeglądarkę Playwright, a telewizor jest otwarty w przeglądarce.</p>
+      </div>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m0t1"><label for="m0t1">Pobierz repozytorium</label></div>
+        <div class="task-body">
+          <p>Sklonuj <a data-repo href="#" target="_blank" rel="noopener">repozytorium tv-backend</a> albo rozpakuj ZIP od trenera.</p>
+          <p class="hint">Na Windowsie przed rozpakowaniem: prawy klik na ZIP, Właściwości, zaznacz „Odblokuj”. ZIP z przycisku „Download ZIP” na GitHubie nie ma historii ani tagu <code>start</code>, nie używaj go.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m0t2"><label for="m0t2">Uruchom Claude Code</label></div>
+        <div class="task-body">
+          <p>W terminalu przejdź do katalogu repozytorium i uruchom Claude Code.</p>
+          <div class="prompt shell"><div class="prompt-label">W terminalu</div><pre>claude</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m0t1b"><label for="m0t1b">Dodaj Playwright, przeglądarkę dla agenta</label></div>
+        <div class="task-body">
+          <p>Playwright to serwer MCP, który pozwala agentowi samodzielnie otworzyć stronę, klikać, naciskać klawisze i robić zrzuty ekranu. Dzięki temu agent sam sprawdzi, czy Pogoda naprawdę wyświetla się w telewizorze, zamiast zgadywać na podstawie kodu.</p>
+          <p>Zainstaluj go jako plugin z oficjalnego marketplace. W sesji Claude wpisz:</p>
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/plugin install playwright@claude-plugins-official</pre></div>
+          <p>Możesz też wpisać samo <code>/plugin</code>, przejść do zakładki <em>Discover</em>, wyszukać <code>playwright</code> i zainstalować go z menu. Po instalacji zamknij sesję (<code>/exit</code>) i uruchom <code>claude</code> ponownie, żeby serwer się uruchomił.</p>
+          <p class="hint">Potrzebny jest Node.js 18 lub nowszy: sprawdzisz go poleceniem <code>node --version</code>. Claude Code nie zna marketplace <code>claude-plugins-official</code>? Dodaj go: <code>/plugin marketplace add anthropics/claude-plugins-official</code>.</p>
+
+          <details class="howto">
+            <summary>Plugin nie działa? Dodaj serwer ręcznie</summary>
+            <div class="howto-body">
+              <p>Ten sposób przydaje się zwłaszcza na Windowsie, gdy plugin nie łączy się w <code>/mcp</code>, oraz gdy marketplace jest niedostępny. Zamknij sesję (<code>/exit</code>) i w terminalu, w katalogu repozytorium, wpisz:</p>
+              <div class="prompt shell"><div class="prompt-label">W terminalu (macOS, Linux)</div><pre>claude mcp add playwright -- npx @playwright/mcp@latest</pre></div>
+              <div class="prompt shell"><div class="prompt-label">W terminalu (Windows)</div><pre>claude mcp add playwright -- cmd /c npx @playwright/mcp@latest</pre></div>
+              <p>Potem uruchom <code>claude</code> ponownie. Jeśli plugin był zainstalowany, wyłącz go w <code>/plugin</code>, żeby nie mieć dwóch serwerów o tej samej nazwie. Konfiguracja trafia do Twoich ustawień Claude Code dla tego katalogu, nie do repozytorium, więc nie pojawi się w commitach.</p>
+            </div>
+          </details>
+          <p class="hint">Nie masz Node.js albo instalacja jest zablokowana? Pomiń ten krok i daj znać trenerowi. Zadania da się zrobić bez Playwright, tylko telewizor sprawdzasz wtedy sam.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m0t3"><label for="m0t3">Sprawdź środowisko <span class="req">Wymagane</span></label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/sprawdz-srodowisko</pre></div>
+          <p>Agent sprawdzi Pythona, gita, skille, testy, serwer telewizora i serwer MCP. Zacznij zadania dopiero, gdy raport kończy się linią „Środowisko gotowe.” Nie masz Pythona? Instrukcja jest poniżej.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m0t4"><label for="m0t4">Uruchom serwer i otwórz telewizor</label></div>
+        <div class="task-body">
+          <p>W drugim oknie terminala uruchom serwer (Windows: <code>run_server.bat</code>).</p>
+          <div class="prompt shell"><div class="prompt-label">W drugim terminalu</div><pre>./run_server.sh</pre></div>
+          <p>Otwórz <a href="http://localhost:8765/tv/?device=TV-001" target="_blank" rel="noopener">localhost:8765/tv/?device=TV-001</a>, strzałkami przejdź do aplikacji Pogoda i naciśnij <kbd>Enter</kbd>. Na razie widać tylko jej nazwę.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m0t5"><label for="m0t5">Sprawdź, że agent widzi telewizor</label></div>
+        <div class="task-body">
+          <p>Wpisz <code>/mcp</code>: serwer <code>playwright</code> powinien być połączony. Potem poproś agenta, żeby sam obejrzał telewizor:</p>
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude</div><pre>Przez Playwright otwórz http://localhost:8765/tv/?device=TV-001, strzałkami przejdź do aplikacji Pogoda, naciśnij Enter, zrób zrzut ekranu i opisz, co widać. Niczego nie zmieniaj w kodzie.</pre></div>
+          <p class="hint">Za pierwszym razem Claude Code zapyta o zgodę na narzędzia <code>playwright</code>. Brakuje przeglądarki? Napisz: <code>Zainstaluj przeglądarkę dla Playwright.</code> Serwer ma do tego własne narzędzie.</p>
+        </div>
+      </article>
+
+      <details class="howto" id="portable-python">
+        <summary>Nie masz Pythona? Instalacja przenośnej wersji na Windowsie</summary>
+        <div class="howto-body">
+          <p>Przenośny Python nie wymaga instalatora ani uprawnień administratora. Na macOS i Linuksie Python zwykle jest w systemie; jeśli go nie ma, napisz do trenera.</p>
+          <ol>
+            <li>Pobierz <a href="https://www.python.org/ftp/python/3.15.2/python-3.15.2-embed-amd64.zip" target="_blank" rel="noopener">Python 3.15.2, Windows embeddable package (64-bit)</a>. Na laptopie z procesorem ARM wybierz wersję ARM64 ze <a href="https://www.python.org/downloads/windows/" target="_blank" rel="noopener">strony pobierania Pythona dla Windows</a>.</li>
+            <li>Odblokuj pobrany plik: prawy klik na ZIP, Właściwości, zaznacz „Odblokuj”, OK.</li>
+            <li>Rozpakuj zawartość do folderu <code>python</code> w katalogu repozytorium, tak żeby plik leżał tutaj: <code>&lt;repozytorium&gt;\python\python.exe</code>. Git ten folder pomija.</li>
+            <li>Uruchom <code>/sprawdz-srodowisko</code>. Skill znajdzie rozpakowanego Pythona i zaproponuje konfigurację. Każdą zmianę zatwierdzasz.</li>
+          </ol>
+          <p class="note"><strong>Windows blokuje <code>python.exe</code>?</strong> Napisz do trenera na czacie szkolenia.</p>
+        </div>
+      </details>
+
+      <p class="note"><strong>Nie musisz pamiętać poleceń gita.</strong> Każde zadanie podaje gotowe polecenia i prompty do skopiowania. Możesz też po prostu poprosić agenta: „utwórz gałąź”, „zacommituj”, „pokaż diff”. Najważniejsze skróty Claude Code są w <a href="#sciaga">ściądze na końcu strony</a>.</p>
+      <p class="note"><strong>Coś nie działa?</strong> Wklej trenerowi raport z <code>/sprawdz-srodowisko</code> albo komunikat błędu. Nie trać czasu na walkę ze środowiskiem.</p>
+
+      <div class="done-box">
+        <h3>Gotowe, gdy:</h3>
+        <ul>
+          <li>raport z <code>/sprawdz-srodowisko</code> kończy się linią „Środowisko gotowe.”</li>
+          <li>telewizor w przeglądarce otwiera aplikację Pogoda</li>
+          <li>agent opisał ekran Pogody na podstawie zrzutu z Playwright (albo wiesz od trenera, że pracujesz bez niego)</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== CZĘŚĆ 1 ===================== -->
+    <div class="part" id="rozgrzewka">
+      <h2>Część 1: ta sama aplikacja, dwie metody</h2>
+      <p>Budujesz Pogodę dwa razy, na dwóch gałęziach od tagu <code>start</code>. Nie liczy się, która wersja jest ładniejsza. Liczy się, ile decyzji agent podjął za Ciebie po cichu i co się stanie, gdy wymagania się zmienią.</p>
+    </div>
+
+    <!-- ===================== 1 ===================== -->
+    <section class="module" id="ex-1" data-min="20" data-num="1" data-title="Vibe coding" data-group="Część 1: dwie metody">
+      <div class="mod-head">
+        <div class="mod-num">1</div>
+        <h2>Vibe coding</h2>
+        <div class="mod-meta"><span>20 min</span><span>gałąź <code>vibe</code></span></div>
+        <p class="goal">Działająca aplikacja bez planu i bez skilli. Po drodze notujesz, co agent zrobił inaczej, niż się spodziewałeś.</p>
+      </div>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m1t1"><label for="m1t1">Wyczyść sesję i utwórz gałąź</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/clear</pre></div>
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>! git switch -c vibe start</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m1t2"><label for="m1t2">Zbuduj Pogodę na żywioł</label></div>
+        <div class="task-body">
+          <p>Wklej opis zadania. Nie używaj skilli i nie planuj: buduj i poprawiaj, aż zadziała. Sprawdzaj wynik w telewizorze (odśwież kartę przeglądarki).</p>
+          <div class="prompt"><div class="prompt-label">Opis zadania (ten sam w zadaniach 1 i 2)</div><pre id="brief-1">W katalogu aplikacji telewizora Lumio jest aplikacja Pogoda, ale po jej otwarciu telewizor pokazuje tylko nazwę. Zrób tak, żeby pokazywała aktualną pogodę w Warszawie. Dane ma dostarczać backend. Sposób wyświetlania jest dowolny.
+
+Dane pobieraj z Open-Meteo (https://open-meteo.com/), które nie wymaga klucza API.</pre></div>
+          <p class="note"><strong>Niech agent sam sprawdza wynik.</strong> Masz Playwright z zadania 0? Dopisz do promptu: <code>Po każdej zmianie sprawdź telewizor przez Playwright i pokaż zrzut ekranu.</code> Działa tak samo w kolejnych zadaniach.</p>
+          <p class="note"><strong>Sieć blokuje Open-Meteo?</strong> Poproś agenta o dane wpisane na stałe i zaznacz to w notatkach.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m1t3"><label for="m1t3">Notuj poprawki i zaskoczenia</label></div>
+        <div class="task-body">
+          <p>Każdą poprawkę, którą musiałeś zlecić, i każde zaskoczenie zapisz od razu poniżej.</p>
+          <textarea data-note="log-1" aria-label="Dziennik poprawek w zadaniu 1" placeholder="Na przykład: 2. poprawka, agent pokazywał temperaturę w Fahrenheitach…"></textarea>
+          <span class="saved" data-saved="log-1"></span>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m1t4"><label for="m1t4">Zacommituj działającą wersję</label></div>
+        <div class="task-body">
+          <p>Telewizor pokazuje pogodę w Warszawie? Napisz agentowi:</p>
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude</div><pre>Zacommituj wszystko.</pre></div>
+        </div>
+      </article>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Które decyzje podjąłeś Ty, a które agent bez pytania? Jednostki, odświeżanie, wygląd, obsługa błędów.</li>
+          <li>Ile czasu zajęło dojście do „działa”, a ile poprawki po drodze?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 2 ===================== -->
+    <section class="module" id="ex-2" data-min="20" data-num="2" data-title="Grilling" data-group="Część 1: dwie metody">
+      <div class="mod-head">
+        <div class="mod-num">2</div>
+        <h2>Najpierw wywiad: /grilling</h2>
+        <div class="mod-meta"><span>20 min</span><span>gałąź <code>grill</code></span></div>
+        <p class="goal">Ta sama aplikacja, ale zanim powstanie kod, agent wypytuje Cię o wszystko, czego nie ma w opisie. Zobaczysz, ile decyzji z zadania 1 zapadło po cichu.</p>
+      </div>
+      <p class="intro"><code>/grilling</code> zadaje pytania rundami. Przy każdym pytaniu podaje swoją rekomendację. Odpowiadasz własnymi słowami albo przyjmujesz rekomendację, ale świadomie.</p>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m2t1"><label for="m2t1">Nowa gałąź od startu, nie od vibe</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/clear</pre></div>
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>! git switch -c grill start</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m2t2"><label for="m2t2">Uruchom wywiad</label></div>
+        <div class="task-body">
+          <p>Wpisz <code>/grilling</code>, a w tej samej wiadomości wklej <a href="#brief-1">opis zadania z zadania 1</a>, bez zmian.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m2t3"><label for="m2t3">Odpowiadaj i zakończ wywiad</label></div>
+        <div class="task-body">
+          <p>Odpowiadaj na pytania. Gdy pytania schodzą w drobiazgi, zakończ wywiad:</p>
+          <div class="prompt"><div class="prompt-label">Koniec wywiadu</div><pre>Wystarczy. Dla pozostałych pytań przyjmij swoje rekomendacje i wypisz je jako listę założeń.</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m2t4"><label for="m2t4">Zapisz zaskakujące pytania</label></div>
+        <div class="task-body">
+          <p>Zapisz poniżej pytania, o których sam byś nie pomyślał.</p>
+          <textarea data-note="questions-2" aria-label="Pytania z grillingu, o których sam bym nie pomyślał" placeholder="Na przykład: co ma pokazać telewizor, gdy backend nie odpowiada?"></textarea>
+          <span class="saved" data-saved="questions-2"></span>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m2t5"><label for="m2t5">Zbuduj to, co ustaliliście</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude</div><pre>Zbuduj to, co ustaliliśmy. Na koniec uruchom testy i zacommituj.</pre></div>
+          <p>Sprawdź wynik w telewizorze.</p>
+        </div>
+      </article>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Jaka jedna decyzja najbardziej różni wersję <code>vibe</code> od <code>grill</code>?</li>
+          <li>Wywiad trwał dłużej niż pisanie promptu w zadaniu 1. Czy zaoszczędził poprawek?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3 ===================== -->
+    <section class="module" id="ex-3" data-min="20" data-num="3" data-title="Zwrot akcji" data-group="Część 1: dwie metody">
+      <div class="mod-head">
+        <div class="mod-num">3</div>
+        <h2>Zwrot akcji: telewizory są u klientów</h2>
+        <div class="mod-meta"><span>20 min</span><span>gałęzie <code>vibe</code> i <code>grill</code></span></div>
+        <p class="goal">Sprawdzić, która wersja przetrwa zmianę wymagań, gdy kodu telewizora nie da się już zmienić.</p>
+      </div>
+      <p class="intro">Trener ogłosi zwrot akcji, gdy większość osób będzie miała gotowe obie wersje. Jeśli przeczytasz go wcześniej, porównanie straci sens.</p>
+
+      <details class="howto">
+        <summary>Zwrot akcji: otwórz dopiero na sygnał trenera</summary>
+        <div class="howto-body">
+          <div class="prompt file"><div class="prompt-label">Wiadomość od trenera</div><pre><strong>Twoje telewizory są już u klientów.</strong> Kod z <code>tv/</code> został wgrany do urządzeń i nie da się go zaktualizować. Od tej chwili możesz zmieniać tylko backend.
+
+<strong>Nowe wymaganie:</strong> telewizor ma pokazywać także prognozę na jutro.</pre></div>
+          <div class="prompt"><div class="prompt-label">Prompt (ten sam na obu gałęziach)</div><pre>Telewizory z bieżącej gałęzi są już u klientów. Oznacz to tagiem &lt;nazwa-gałęzi&gt;-wdrozone, np. git tag vibe-wdrozone.
+
+Nowe wymaganie: telewizor ma pokazywać także prognozę na jutro. Kodu w tv/ nie wolno już zmieniać. Zmień tylko backend, uruchom testy i zacommituj.
+
+Jeśli bez zmiany tv/ się nie da, nie zmieniaj tv/. Wyjaśnij w trzech zdaniach, czego zabrakło w kontrakcie między backendem a telewizorem.</pre></div>
+
+          <article class="task">
+            <div class="task-head"><input type="checkbox" id="m3t1"><label for="m3t1">Gałąź vibe</label></div>
+            <div class="task-body">
+              <p><code>/clear</code>, przełącz gałąź i wklej prompt. Najwyżej 10 minut.</p>
+              <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>! git switch vibe</pre></div>
+            </div>
+          </article>
+          <article class="task">
+            <div class="task-head"><input type="checkbox" id="m3t2"><label for="m3t2">Gałąź grill</label></div>
+            <div class="task-body">
+              <p><code>/clear</code>, przełącz gałąź i wklej ten sam prompt. Też najwyżej 10 minut.</p>
+              <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>! git switch grill</pre></div>
+            </div>
+          </article>
+          <article class="task">
+            <div class="task-head"><input type="checkbox" id="m3t3"><label for="m3t3">Sprawdź telewizor na obu gałęziach</label></div>
+            <div class="task-body">
+              <p>Odśwież telewizor na każdej gałęzi. Widać prognozę na jutro?</p>
+              <p class="hint">Po tagu <code>-wdrozone</code> test <code>tests/test_tv_frozen.py</code> nie przejdzie, jeśli ktokolwiek zmieni <code>tv/</code>. Agent nie oszuka po cichu.</p>
+            </div>
+          </article>
+          <p class="note"><strong>Dla szybszych.</strong> Telewizorów jest 10 000, każdy odświeża dane co minutę, a darmowy limit Open-Meteo to 10 000 zapytań dziennie. Co musi się zmienić i gdzie?</p>
+        </div>
+      </details>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m3t4"><label for="m3t4">Wypełnij porównanie</label></div>
+        <div class="task-body">
+          <p>Wypełnij kolumny <code>vibe</code> i <code>grill</code> teraz, a kolumnę <code>docs</code> w zadaniu 8.</p>
+          <div class="cmp-wrap">
+            <table class="cmp">
+              <thead><tr><th scope="col">Pytanie</th><th scope="col">vibe</th><th scope="col">grill</th><th scope="col">docs</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Ile razy poprawiałeś agenta w trakcie budowy?</th>
+                  <td><textarea data-note="cmp-1-vibe" aria-label="vibe: poprawki"></textarea></td><td><textarea data-note="cmp-1-grill" aria-label="grill: poprawki"></textarea></td><td><textarea data-note="cmp-1-docs" aria-label="docs: poprawki"></textarea></td></tr>
+                <tr><th scope="row">Kto zdecydował o jednostkach, wyglądzie i odświeżaniu: Ty czy agent po cichu?</th>
+                  <td><textarea data-note="cmp-2-vibe" aria-label="vibe: decyzje"></textarea></td><td><textarea data-note="cmp-2-grill" aria-label="grill: decyzje"></textarea></td><td><textarea data-note="cmp-2-docs" aria-label="docs: decyzje"></textarea></td></tr>
+                <tr><th scope="row">Co pokazuje telewizor, gdy Open-Meteo nie odpowiada?</th>
+                  <td><textarea data-note="cmp-3-vibe" aria-label="vibe: awaria źródła"></textarea></td><td><textarea data-note="cmp-3-grill" aria-label="grill: awaria źródła"></textarea></td><td><textarea data-note="cmp-3-docs" aria-label="docs: awaria źródła"></textarea></td></tr>
+                <tr><th scope="row">Nowa prognoza bez zmiany <code>tv/</code>: udało się? Ile to trwało?</th>
+                  <td><textarea data-note="cmp-4-vibe" aria-label="vibe: zwrot akcji"></textarea></td><td><textarea data-note="cmp-4-grill" aria-label="grill: zwrot akcji"></textarea></td><td><textarea data-note="cmp-4-docs" aria-label="docs: zwrot akcji"></textarea></td></tr>
+                <tr><th scope="row">Czy są testy kontraktu backend ↔ telewizor?</th>
+                  <td><textarea data-note="cmp-5-vibe" aria-label="vibe: testy"></textarea></td><td><textarea data-note="cmp-5-grill" aria-label="grill: testy"></textarea></td><td><textarea data-note="cmp-5-docs" aria-label="docs: testy"></textarea></td></tr>
+                <tr><th scope="row">Ile decyzji jest zapisanych gdzieś poza kodem i czatem?</th>
+                  <td><textarea data-note="cmp-6-vibe" aria-label="vibe: zapisane decyzje"></textarea></td><td><textarea data-note="cmp-6-grill" aria-label="grill: zapisane decyzje"></textarea></td><td><textarea data-note="cmp-6-docs" aria-label="docs: zapisane decyzje"></textarea></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Które pytanie z grillingu najbardziej pomogło przy zwrocie akcji?</li>
+          <li>Kiedy vibe coding w zupełności wystarcza?</li>
+          <li>Decyzje z wywiadu zostały w historii czatu. Co się z nimi stanie po <code>/clear</code>?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== CZĘŚĆ 2 ===================== -->
+    <div class="part" id="cykl">
+      <h2>Część 2: pełny cykl</h2>
+      <p>Trzecia wersja Pogody, od razu ze wszystkimi wymaganiami. Tym razem każda decyzja zostaje zapisana w repozytorium: słownik pojęć w <code>CONTEXT.md</code>, decyzje w <code>docs/adr/</code>, specyfikacja i tickety w <code>.scratch/</code>. Każdy skill przekazuje wynik następnemu, więc Ty tylko czytasz, poprawiasz i zatwierdzasz.</p>
+    </div>
+
+    <!-- ===================== 4 ===================== -->
+    <section class="module" id="ex-4" data-min="20" data-num="4" data-title="Wywiad z dokumentacją" data-group="Część 2: pełny cykl">
+      <div class="mod-head">
+        <div class="mod-num">4</div>
+        <h2>Wywiad z dokumentacją: /grill-with-docs</h2>
+        <div class="mod-meta"><span>20 min</span><span>gałąź <code>docs</code></span></div>
+        <p class="goal">Ten sam wywiad co w zadaniu 2, ale tym razem agent zapisuje w trakcie słownik pojęć i decyzje architektoniczne.</p>
+      </div>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m4t1"><label for="m4t1">Nowa gałąź docs</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/clear</pre></div>
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>! git switch -c docs start</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m4t2"><label for="m4t2">Uruchom wywiad z pełnymi wymaganiami</label></div>
+        <div class="task-body">
+          <p>Wpisz <code>/grill-with-docs</code> i w tej samej wiadomości wklej opis z pełnymi wymaganiami.</p>
+          <div class="prompt"><div class="prompt-label">Opis zadania z pełnymi wymaganiami</div><pre>W katalogu aplikacji telewizora Lumio jest aplikacja Pogoda, ale po jej otwarciu telewizor pokazuje tylko nazwę. Zrób tak, żeby pokazywała pogodę w Warszawie. Dane ma dostarczać backend, który pobiera je z Open-Meteo (https://open-meteo.com/), bez klucza API.
+
+Wymagania:
+- Telewizor pokazuje aktualną pogodę i prognozę na jutro.
+- Po pierwszym wdrożeniu kodu telewizora (tv/) nie da się już aktualizować. Każda późniejsza zmiana musi być po stronie backendu.
+- Telewizorów jest 10 000, każdy odświeża dane co minutę. Darmowy limit Open-Meteo to 10 000 zapytań dziennie.</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m4t3"><label for="m4t3">Pilnuj słownika</label></div>
+        <div class="task-body">
+          <p>Gdy mówisz nieprecyzyjnie, np. „pogoda” zamiast „pogoda aktualna” albo „prognoza”, agent powinien dopytać. Jeśli nie dopytuje, zwróć mu uwagę.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m4t4"><label for="m4t4">Zakończ wywiad po około 15 minutach</label></div>
+        <div class="task-body">
+          <p>Użyj tego samego polecenia co w zadaniu 2:</p>
+          <div class="prompt"><div class="prompt-label">Koniec wywiadu</div><pre>Wystarczy. Dla pozostałych pytań przyjmij swoje rekomendacje i wypisz je jako listę założeń.</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m4t5"><label for="m4t5">Przeczytaj CONTEXT.md i ADR-y</label></div>
+        <div class="task-body">
+          <p>Przeczytaj <code>CONTEXT.md</code> i pliki w <code>docs/adr/</code>. Coś się nie zgadza z ustaleniami? Powiedz agentowi, co poprawić.</p>
+        </div>
+      </article>
+
+      <p class="note"><strong>Nie czyść sesji.</strong> Następny skill, <code>/to-spec</code>, pisze specyfikację z tej rozmowy. Po <code>/clear</code> nie miałby z czego.</p>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Które pojęcie okazało się mniej oczywiste, niż myślałeś?</li>
+          <li>Gdyby jutro do projektu dołączyła nowa osoba, czy z <code>CONTEXT.md</code> i ADR-ów zrozumiałaby, dlaczego aplikacja działa tak, a nie inaczej?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 5 ===================== -->
+    <section class="module" id="ex-5" data-min="10" data-num="5" data-title="Specyfikacja" data-group="Część 2: pełny cykl">
+      <div class="mod-head">
+        <div class="mod-num">5</div>
+        <h2>Specyfikacja: /to-spec</h2>
+        <div class="mod-meta"><span>10 min</span><span>ta sama sesja</span></div>
+        <p class="goal">Ustalenia z wywiadu zamienione w jeden dokument, który zrozumie każdy, także nowa sesja agenta.</p>
+      </div>
+      <p class="intro"><code>/to-spec</code> o nic już nie wypytuje, tylko streszcza rozmowę. Zapyta Cię o jedno: <strong>gdzie testy mają sprawdzać zachowanie</strong> (w skillach to „seam”). Dla Pogody to zwykle endpoint backendu, który woła telewizor. Im mniej takich miejsc, tym lepiej.</p>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m5t1"><label for="m5t1">Uruchom /to-spec</label></div>
+        <div class="task-body">
+          <p>W tej samej sesji wpisz:</p>
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/to-spec</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m5t2"><label for="m5t2">Zatwierdź miejsca testowania</label></div>
+        <div class="task-body">
+          <p>Zatwierdź albo popraw miejsca testowania, które proponuje agent.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m5t3"><label for="m5t3">Przeczytaj specyfikację</label></div>
+        <div class="task-body">
+          <p>Otwórz specyfikację w <code>.scratch/&lt;nazwa&gt;/spec.md</code>. Przeczytaj „Problem Statement”, „Solution” i „Out of Scope”, a historyjki użytkownika tylko przejrzyj.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m5t4"><label for="m5t4">Popraw, co się nie zgadza</label></div>
+        <div class="task-body">
+          <p>Jeśli coś się nie zgadza z ustaleniami, napisz agentowi, co zmienić w specyfikacji.</p>
+        </div>
+      </article>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Czy w specyfikacji jest coś, czego nie ustaliliście? Skąd się wzięło?</li>
+          <li>Co jest poza zakresem? Czy zgadzasz się z tą listą?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 6 ===================== -->
+    <section class="module" id="ex-6" data-min="10" data-num="6" data-title="Tickety" data-group="Część 2: pełny cykl">
+      <div class="mod-head">
+        <div class="mod-num">6</div>
+        <h2>Tickety: /to-tickets</h2>
+        <div class="mod-meta"><span>10 min</span><span>ta sama sesja</span></div>
+        <p class="goal">Specyfikacja podzielona na małe tickety. Każdy przechodzi przez całą aplikację (backend, telewizor, testy) i po każdym da się coś zobaczyć w telewizorze.</p>
+      </div>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m6t1"><label for="m6t1">Uruchom /to-tickets</label></div>
+        <div class="task-body">
+          <p>W tej samej sesji wpisz:</p>
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/to-tickets</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m6t2"><label for="m6t2">Oceń propozycję podziału</label></div>
+        <div class="task-body">
+          <p>Agent pokaże propozycję podziału i zapyta o zdanie. Celuj w 3–4 tickety. Pierwszy powinien dać najprostszy działający efekt, np. „telewizor pokazuje aktualną temperaturę”.</p>
+          <p class="hint">Za dużo ticketów? Napisz:</p>
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude</div><pre>Połącz tickety do najwyżej czterech.</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m6t3"><label for="m6t3">Zatwierdź podział</label></div>
+        <div class="task-body">
+          <p>Tickety pojawią się w <code>.scratch/&lt;nazwa&gt;/issues/</code>, po jednym pliku na ticket.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m6t4"><label for="m6t4">Zacommituj dokumentację</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude</div><pre>Zacommituj CONTEXT.md, ADR-y, specyfikację i tickety.</pre></div>
+        </div>
+      </article>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Czym różni się ticket „pionowy” (przez całą aplikację) od ticketu „najpierw cały backend, potem cały telewizor”? Co zobaczysz po pierwszym z nich?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 7 ===================== -->
+    <section class="module" id="ex-7" data-min="25" data-num="7" data-title="Implementacja" data-group="Część 2: pełny cykl">
+      <div class="mod-head">
+        <div class="mod-num">7</div>
+        <h2>Implementacja: /implement</h2>
+        <div class="mod-meta"><span>25 min</span><span>nowa sesja na każdy ticket</span></div>
+        <p class="goal">Tickety zrobione jeden po drugim, każdy w osobnej sesji, z testami i commitem.</p>
+      </div>
+      <p class="intro"><code>/implement</code> sam pisze testy przed kodem (<code>/tdd</code>), na koniec robi review zmian i commit. Specyfikacja i tickety są w plikach, więc nowa sesja ma pełny kontekst bez historii czatu.</p>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m7t1"><label for="m7t1">Pierwszy ticket</label></div>
+        <div class="task-body">
+          <p><code>/clear</code>, wklej prompt. Na pytanie o miejsca testowania odpowiedz zgodnie ze specyfikacją.</p>
+          <div class="prompt"><div class="prompt-label">Prompt na każdy ticket</div><pre>/implement Weź pierwszy niezrobiony ticket z .scratch/. Gdy skończysz, oznacz go w pliku jako zrobiony.</pre></div>
+          <p class="hint"><kbd>Shift</kbd>+<kbd>Tab</kbd> włącza automatyczną akceptację edycji, jeśli nie chcesz zatwierdzać każdego pliku.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m7t2"><label for="m7t2">Sprawdź efekt w telewizorze</label></div>
+        <div class="task-body">
+          <p>Po pierwszym tickecie odśwież telewizor. Widać efekt, który obiecywał ticket?</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m7t3"><label for="m7t3">Przejrzyj zmiany</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>! git show --stat</pre></div>
+          <p>Pliki spoza ticketu? Zapytaj agenta, po co.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m7t4"><label for="m7t4">Kolejne tickety</label></div>
+        <div class="task-body">
+          <p>Kolejny ticket: znowu <code>/clear</code> i ten sam prompt. Zrób tyle, ile zdążysz, najlepiej wszystkie.</p>
+        </div>
+      </article>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Ile razy poprawiałeś agenta w porównaniu z zadaniem 1?</li>
+          <li>Czy nowa sesja na każdy ticket coś zgubiła? Co ją uratowało?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 8 ===================== -->
+    <section class="module" id="ex-8" data-min="15" data-num="8" data-title="Review" data-group="Część 2: pełny cykl">
+      <div class="mod-head">
+        <div class="mod-num">8</div>
+        <h2>Review: /code-review</h2>
+        <div class="mod-meta"><span>15 min</span><span>gałąź <code>docs</code></span></div>
+        <p class="goal">Niezależne review całej gałęzi w dwóch osiach, a potem dowód, że kontrakt z telewizorem wytrzyma zmianę.</p>
+      </div>
+      <p class="intro"><code>/code-review</code> uruchamia dwóch recenzentów naraz. Jeden sprawdza <strong>standardy</strong> (zasady z <code>CLAUDE.md</code> i typowe „zapachy” kodu), drugi <strong>zgodność ze specyfikacją</strong>: czego brakuje, co jest zrobione źle, co powstało, choć nikt o to nie prosił.</p>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m8t1"><label for="m8t1">Uruchom review od startu</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/clear</pre></div>
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/code-review start</pre></div>
+          <p>Słowo <code>start</code> to punkt odniesienia: review obejmie wszystko, co zmieniło się od startu.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m8t2"><label for="m8t2">Popraw najważniejszą uwagę</label></div>
+        <div class="task-body">
+          <p>Przeczytaj oba raporty. Wybierz najważniejszą uwagę i poproś:</p>
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude</div><pre>Popraw uwagę o … Uruchom testy i zacommituj.</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m8t3"><label for="m8t3">Sprawdź kontrakt: prognoza na pojutrze</label></div>
+        <div class="task-body">
+          <p><code>/clear</code> i wklej:</p>
+          <div class="prompt"><div class="prompt-label">Prompt: prognoza na pojutrze</div><pre>Telewizory z tej gałęzi są już u klientów. Oznacz to tagiem docs-wdrozone.
+
+Nowe wymaganie: telewizor ma pokazywać także prognozę na pojutrze. Przeczytaj CONTEXT.md i docs/adr/. Zmień tylko backend, uruchom testy i zacommituj.</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m8t4"><label for="m8t4">Uzupełnij porównanie</label></div>
+        <div class="task-body">
+          <p>Odśwież telewizor. Widać prognozę na pojutrze? Uzupełnij kolumnę <code>docs</code> w <a href="#ex-3">porównaniu z zadania 3</a>.</p>
+        </div>
+      </article>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Które uwagi z review zignorowałeś i dlaczego?</li>
+          <li>Który ADR przydał się przy prognozie na pojutrze? Którego zabrakło?</li>
+          <li>Ile kosztował pełny cykl w porównaniu z zadaniem 1? Kiedy ten koszt się zwraca?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== CZĘŚĆ 3 ===================== -->
+    <div class="part" id="narzedzia">
+      <h2>Część 3: prototyp i MCP</h2>
+      <p>Dwa narzędzia, które przydają się poza cyklem: prototyp, gdy nie wiesz, czego chcesz, i serwer MCP, gdy agent potrzebuje danych spoza repozytorium.</p>
+    </div>
+
+    <!-- ===================== 9 ===================== -->
+    <section class="module" id="ex-9" data-min="15" data-num="9" data-title="Prototyp" data-group="Część 3: prototyp i MCP">
+      <div class="mod-head">
+        <div class="mod-num">9</div>
+        <h2>Prototyp: /prototype</h2>
+        <div class="mod-meta"><span>15 min</span><span>gałąź <code>prototyp-ostrzezenia</code></span></div>
+        <p class="goal">Odpowiedzieć na jedno pytanie projektowe w kwadrans, prototypem do wyrzucenia, zanim zacznie się wywiad i specyfikacja kolejnej funkcji.</p>
+      </div>
+      <p class="intro">Produkt chce ostrzeżeń pogodowych na telewizorze. Nikt jeszcze nie wie, jak mają się zachowywać. Zamiast o tym dyskutować, klikasz w działający model i widzisz, gdzie pomysł się sypie.</p>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m9t1"><label for="m9t1">Zleć prototyp</label></div>
+        <div class="task-body">
+          <p><code>/clear</code>, wklej prompt. Agent otworzy plik w przeglądarce.</p>
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude</div><pre>/prototype Produkt chce, żeby Pogoda pokazywała ostrzeżenia: burza, upał, mróz. Zanim to zaplanujemy, chcę zobaczyć, jak ostrzeżenia mają się zachowywać: kiedy się pojawiają i znikają, co gdy są dwa naraz, co gdy Open-Meteo przestanie odpowiadać w trakcie ostrzeżenia.
+
+Zrób prototyp logiki jako jeden plik HTML i otwórz go w przeglądarce. Nie zmieniaj backendu ani tv/.</pre></div>
+          <p class="hint">Nie otworzył? Napisz: <code>Otwórz prototyp w przeglądarce.</code></p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m9t2"><label for="m9t2">Przeklikaj scenariusze</label></div>
+        <div class="task-body">
+          <p>Przeklikaj scenariusze z zakładek i pobaw się przyciskami. Szukaj momentów „to nie powinno być możliwe”.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m9t3"><label for="m9t3">Poproś o zmianę albo nowy scenariusz</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude, na przykład</div><pre>Dodaj scenariusz: ostrzeżenie wygasa w nocy, gdy telewizor jest wyłączony.</pre></div>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m9t4"><label for="m9t4">Zapisz werdykt</label></div>
+        <div class="task-body">
+          <p>Na jakie pytanie odpowiedział prototyp i jaka jest odpowiedź?</p>
+          <textarea data-note="proto-9" aria-label="Werdykt z prototypu" placeholder="Pytanie: … Odpowiedź: …"></textarea>
+          <span class="saved" data-saved="proto-9"></span>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m9t5"><label for="m9t5">Zachowaj wynik</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">Prompt dla Claude</div><pre>Zapisz werdykt jako ADR w docs/adr/ i zacommituj go. Prototyp zacommituj na osobnej gałęzi prototyp-ostrzezenia, nie na docs.</pre></div>
+        </div>
+      </article>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Ile pytań z przyszłego wywiadu odpadło dzięki prototypowi?</li>
+          <li>Dlaczego prototyp nie trafia na główną gałąź, a werdykt tak?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 10 ===================== -->
+    <section class="module" id="ex-10" data-min="20" data-num="10" data-title="Serwer MCP" data-group="Część 3: prototyp i MCP">
+      <div class="mod-head">
+        <div class="mod-num">10</div>
+        <h2>Serwer MCP z bazą danych</h2>
+        <div class="mod-meta"><span>20 min</span><span>serwer <code>lumio-db</code></span></div>
+        <p class="goal">Podłączyć do Claude Code gotowy serwer MCP i zadawać pytania o dane, których nie ma w kodzie.</p>
+      </div>
+      <p class="intro">MCP to sposób, w jaki agent dostaje narzędzia spoza repozytorium: bazy danych, trackery, dokumentację. W <code>mcp_server/</code> jest serwer <code>lumio-db</code> z małą bazą floty: 60 telewizorów, 5 modeli, wydania firmware'u i 48 zgłoszeń supportu. Ma dwa narzędzia, oba tylko do odczytu: <code>describe_database</code> (jakie są tabele i kolumny) i <code>run_query</code> (zapytanie SQL).</p>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m10t1"><label for="m10t1">Podłącz serwer</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>! claude mcp add --scope project lumio-db -- python3 mcp_server/lumio_db.py</pre></div>
+          <p class="hint">Na Windowsie zamiast <code>python3</code> wpisz <code>py -3</code> albo <code>python</code>, a z przenośnym Pythonem <code>python/python.exe</code>. Polecenie zapisze konfigurację w pliku <code>.mcp.json</code>.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m10t2"><label for="m10t2">Uruchom sesję ponownie</label></div>
+        <div class="task-body">
+          <p>Zamknij sesję (<code>/exit</code>) i uruchom <code>claude</code> ponownie. Zatwierdź serwer <code>lumio-db</code>, gdy Claude Code zapyta, czy mu ufasz.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m10t3"><label for="m10t3">Sprawdź połączenie</label></div>
+        <div class="task-body">
+          <div class="prompt"><div class="prompt-label">W sesji Claude</div><pre>/mcp</pre></div>
+          <p>Serwer <code>lumio-db</code> jest połączony i ma dwa narzędzia?</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m10t4"><label for="m10t4">Zadaj pytania do bazy</label></div>
+        <div class="task-body">
+          <p>Zadawaj pytania po jednym. Zanim zatwierdzisz wywołanie <code>run_query</code>, przeczytaj zapytanie SQL, które napisał agent.</p>
+          <div class="prompt"><div class="prompt-label">Pytania do bazy</div><pre>1. Ile telewizorów mamy w każdym regionie?
+2. Które telewizory w regionie EU mają firmware starszy niż 2.9.0?
+3. Który model ma najwięcej otwartych zgłoszeń i czego one dotyczą?
+4. Ile kosztuje telewizor LM-65X25?
+5. Usuń wszystkie zamknięte zgłoszenia.</pre></div>
+          <p class="hint">Narzędzia są tylko do odczytu, więc możesz wybrać „Yes, and don't ask again”. Agent przestanie pytać o te narzędzia.</p>
+        </div>
+      </article>
+
+      <article class="task">
+        <div class="task-head"><input type="checkbox" id="m10t5"><label for="m10t5">Zapisz obserwacje z pytań 4 i 5</label></div>
+        <div class="task-body">
+          <p>Co agent zrobił z pytaniami 4 i 5? Bazy cen nie ma, a usuwać nie wolno.</p>
+          <textarea data-note="mcp-10" aria-label="Obserwacje z serwera MCP" placeholder="Pytanie 4: … Pytanie 5: …"></textarea>
+          <span class="saved" data-saved="mcp-10"></span>
+        </div>
+      </article>
+
+      <p class="note"><strong>Zajrzyj pod maskę (opcjonalnie).</strong> <code>! python3 mcp_server/smoke.py mcp_server/lumio_db.py</code> pokazuje dokładnie to, co serwer mówi modelowi: nazwy, opisy narzędzi i instrukcje. Dane są w czytelnym pliku <code>mcp_server/lumio.sql</code>.</p>
+
+      <div class="done-box">
+        <h3>Po zadaniu: do przemyślenia</h3>
+        <ul>
+          <li>Skąd agent wiedział, jakie są tabele i kolumny? Co by się stało bez <code>describe_database</code>?</li>
+          <li>Kto pilnuje, że baza jest tylko do odczytu: Ty przy zatwierdzaniu, agent czy serwer? Któremu z nich ufasz najbardziej?</li>
+          <li>Jakie dane Twojego zespołu warto by podłączyć w ten sam sposób? Kto powinien zatwierdzić taki serwer?</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== Ściąga ===================== -->
+    <section class="cheat" id="sciaga">
+      <h2>Ściąga komend</h2>
+      <p>Skróty Claude Code i skille z zadań w jednym miejscu. W kolumnie po prawej moduł, w którym pojawiają się po raz pierwszy.</p>
+      <table>
+        <thead><tr><th>Komenda</th><th>Co robi</th><th>Moduł</th></tr></thead>
+        <tbody>
+          <tr><td><code>/clear</code></td><td>nowa, czysta sesja. Na początku każdego zadania, chyba że zadanie mówi inaczej.</td><td class="mod">0</td></tr>
+          <tr><td><code>! polecenie</code></td><td>uruchamia polecenie powłoki bez agenta, np. <code>! git log --oneline</code>.</td><td class="mod">0</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>przerywa agenta, gdy idzie w złą stronę. Potem po prostu napisz, co ma zrobić inaczej.</td><td class="mod">0</td></tr>
+          <tr><td><kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>przełącza tryb pracy, np. automatyczną akceptację edycji plików. Mniej klikania „Yes”.</td><td class="mod">0</td></tr>
+          <tr><td><code>@ścieżka</code></td><td>dołącza plik do wiadomości, np. <code>@CONTEXT.md</code>.</td><td class="mod">0</td></tr>
+          <tr><td><code>/context</code></td><td>pokazuje, co zajmuje kontekst.</td><td class="mod">0</td></tr>
+          <tr><td><code>/plugin</code></td><td>przegląda marketplace, instaluje, włącza i wyłącza pluginy.</td><td class="mod">0</td></tr>
+          <tr><td><code>/plugin install playwright@claude-plugins-official</code></td><td>daje agentowi przeglądarkę: otwiera telewizor, klika, robi zrzuty ekranu.</td><td class="mod">0</td></tr>
+          <tr><td><code>/sprawdz-srodowisko</code></td><td>sprawdza Pythona, gita, skille, testy, serwer telewizora i serwer MCP.</td><td class="mod">0</td></tr>
+          <tr><td><code>/grilling</code></td><td>wywiad przed kodem: pytania rundami, przy każdym rekomendacja.</td><td class="mod">2</td></tr>
+          <tr><td><code>/grill-with-docs</code></td><td>wywiad, który zapisuje słownik w <code>CONTEXT.md</code> i decyzje w <code>docs/adr/</code>.</td><td class="mod">4</td></tr>
+          <tr><td><code>/to-spec</code></td><td>zamienia ustalenia z rozmowy w specyfikację w <code>.scratch/</code>.</td><td class="mod">5</td></tr>
+          <tr><td><code>/to-tickets</code></td><td>dzieli specyfikację na pionowe tickety.</td><td class="mod">6</td></tr>
+          <tr><td><code>/implement</code></td><td>realizuje ticket: testy przed kodem, review zmian i commit.</td><td class="mod">7</td></tr>
+          <tr><td><code>/code-review start</code></td><td>review od punktu odniesienia: standardy i zgodność ze specyfikacją.</td><td class="mod">8</td></tr>
+          <tr><td><code>/prototype</code></td><td>prototyp do wyrzucenia, który odpowiada na jedno pytanie projektowe.</td><td class="mod">9</td></tr>
+          <tr><td><code>/mcp</code></td><td>podłączone serwery MCP i ich narzędzia.</td><td class="mod">10</td></tr>
+          <tr><td><code>/exit</code></td><td>kończy sesję.</td><td class="mod">10</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      Postęp i notatki zapisują się tylko w tej przeglądarce, na tym urządzeniu. Wersja strony z 05.11.2026.
+    </footer>
+  </main>
+</div>
+
+<script>
+  // ---------- Konfiguracja: uzupełnij przed publikacją ----------
+  var CONFIG = {
+    repoUrl: "https://github.com/Majkee/tv-backend"
+  };
+  // ----------------------------------------------------------------
+
+  (function () {
+    var KEY = "lumio-szkolenie-v3";
+    var state = { checks: {}, notes: {} };
+    try {
+      var raw = window.localStorage.getItem(KEY);
+      if (raw) {
+        var s = JSON.parse(raw) || {};
+        state.checks = s.checks || {};
+        state.notes = s.notes || {};
+        state.theme = s.theme;
+      }
+    } catch (e) { /* brak dostępu do pamięci przeglądarki: działamy bez zapisu */ }
+    function save() {
+      try { window.localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    }
+    function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+    $$("a[data-repo]").forEach(function (a) { a.href = CONFIG.repoUrl; });
+
+    if (state.theme) document.documentElement.setAttribute("data-theme", state.theme);
+    document.getElementById("theme").addEventListener("click", function () {
+      var root = document.documentElement;
+      var cur = root.getAttribute("data-theme");
+      var dark = cur ? cur === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      state.theme = dark ? "light" : "dark";
+      root.setAttribute("data-theme", state.theme);
+      save();
+    });
+
+    // Kopiowanie: przycisk w każdym bloku z promptem, oprócz wiadomości od trenera
+    function fallbackCopy(text) {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      return ok;
+    }
+    $$(".prompt:not(.file)").forEach(function (box) {
+      var pre = box.querySelector("pre");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "copy";
+      btn.textContent = "Kopiuj";
+      btn.addEventListener("click", function () {
+        var text = pre.textContent;
+        function done(ok) {
+          btn.textContent = ok ? "Skopiowano" : "Zaznacz i skopiuj ręcznie";
+          btn.classList.toggle("ok", ok);
+          setTimeout(function () { btn.textContent = "Kopiuj"; btn.classList.remove("ok"); }, 1600);
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(fallbackCopy(text)); });
+        } else {
+          done(fallbackCopy(text));
+        }
+      });
+      box.appendChild(btn);
+    });
+
+    // Moduły: lista boczna i pasek budżetu czasu
+    var modules = $$("section.module");
+    var rail = document.getElementById("rail");
+    var budget = document.getElementById("budget");
+    var lastGroup = null;
+    modules.forEach(function (m) {
+      var num = m.getAttribute("data-num"), min = m.getAttribute("data-min"), title = m.getAttribute("data-title");
+      var group = m.getAttribute("data-group");
+      if (group && group !== lastGroup) {
+        var g = document.createElement("li");
+        g.className = "group";
+        g.textContent = group;
+        rail.appendChild(g);
+        lastGroup = group;
+      }
+      var li = document.createElement("li");
+      li.setAttribute("data-mod", m.id);
+      li.innerHTML = '<a href="#' + m.id + '"><span class="n"><span>' + num + '</span></span><span></span><span class="m">' + min + "′</span></a>";
+      li.querySelector("a span:nth-child(2)").textContent = title;
+      rail.appendChild(li);
+
+      var seg = document.createElement("a");
+      seg.className = "seg";
+      seg.href = "#" + m.id;
+      seg.setAttribute("data-mod", m.id);
+      seg.style.flex = min;
+      seg.title = num + ". " + title + " (" + min + " min)";
+      seg.innerHTML = '<div class="fill"></div><span>' + num + "</span>";
+      budget.appendChild(seg);
+    });
+
+    function update() {
+      var doneAll = 0, totalAll = 0, doneMin = 0, allMin = 0;
+      modules.forEach(function (m) {
+        var boxes = $$(".task-head input[type=checkbox]", m);
+        var done = boxes.filter(function (b) { return b.checked; }).length;
+        var total = boxes.length;
+        var min = Number(m.getAttribute("data-min"));
+        doneAll += done; totalAll += total; allMin += min;
+        doneMin += total ? min * done / total : 0;
+        var complete = total > 0 && done === total;
+        m.classList.toggle("done", complete);
+        var seg = budget.querySelector('[data-mod="' + m.id + '"]');
+        seg.classList.toggle("done", complete);
+        seg.querySelector(".fill").style.width = (total ? 100 * done / total : 0) + "%";
+        rail.querySelector('[data-mod="' + m.id + '"]').classList.toggle("done", complete);
+      });
+      document.getElementById("progress-text").textContent = "Ukończono " + doneAll + " z " + totalAll + " kroków";
+      document.getElementById("clock").textContent = "ok. " + Math.round(doneMin) + " z " + allMin + " min";
+    }
+
+    $$(".task-head input[type=checkbox]").forEach(function (cb) {
+      var card = cb.closest(".task");
+      cb.checked = !!state.checks[cb.id];
+      card.classList.toggle("checked", cb.checked);
+      cb.addEventListener("change", function () {
+        if (cb.checked) state.checks[cb.id] = true; else delete state.checks[cb.id];
+        card.classList.toggle("checked", cb.checked);
+        save();
+        update();
+      });
+    });
+
+    // Notatki
+    $$("textarea[data-note]").forEach(function (ta) {
+      var key = ta.getAttribute("data-note");
+      var info = document.querySelector('[data-saved="' + key + '"]');
+      ta.value = state.notes[key] || "";
+      var t;
+      ta.addEventListener("input", function () {
+        state.notes[key] = ta.value;
+        clearTimeout(t);
+        t = setTimeout(function () {
+          save();
+          if (info) info.textContent = "Zapisano w tej przeglądarce";
+        }, 400);
+      });
+    });
+
+    document.getElementById("reset").addEventListener("click", function () {
+      if (!window.confirm("Wyczyścić zaznaczone kroki i notatki w tej przeglądarce?")) return;
+      state.checks = {};
+      state.notes = {};
+      save();
+      $$(".task-head input[type=checkbox]").forEach(function (b) { b.checked = false; b.closest(".task").classList.remove("checked"); });
+      $$("textarea[data-note]").forEach(function (ta) { ta.value = ""; });
+      $$("[data-saved]").forEach(function (s) { s.textContent = ""; });
+      update();
+    });
+
+    update();
+  })();
+</script>
+</body>
+</html>

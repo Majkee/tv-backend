@@ -1,12 +1,12 @@
 ---
 name: sprawdz-srodowisko
-description: Sprawdza, czy środowisko szkoleniowe jest gotowe do zadań modułu 3 (Python, git, skille, testy, dane do zadań, serwer telewizora), konfiguruje rozpakowanego przenośnego Pythona i kończy się jednoznacznym raportem.
+description: Sprawdza, czy środowisko szkoleniowe jest gotowe do zadań (Python, git, skille, testy, dane do zadań, serwer telewizora, serwer MCP), konfiguruje rozpakowanego przenośnego Pythona i kończy się jednoznacznym raportem.
 disable-model-invocation: true
 ---
 
 # Sprawdzenie gotowości środowiska
 
-Twoje zadanie: sprawdzić, czy uczestnik może zacząć zadania modułu 3, i oddać krótki raport.
+Twoje zadanie: sprawdzić, czy uczestnik może zacząć zadania, i oddać krótki raport.
 
 Zasadniczo tylko sprawdzasz. Jedyny wyjątek to konfiguracja przenośnego Pythona w kroku 1a, i to zawsze za zgodą uczestnika. Poza tym krokiem nie naprawiasz, nie instalujesz pakietów, nie pobierasz niczego z internetu, nie zmieniasz plików w repozytorium i nie zaczynasz żadnego zadania.
 
@@ -19,12 +19,11 @@ Każdy krok kończy się jednym z trzech wyników:
 
 Przy ⚠️ i ❌ podaj przyczynę w jednym zdaniu i jeden konkretny krok naprawczy. Jeśli krok zależy od poprzedniego, który dał ❌, oznacz go jako „pominięty” i podaj powód.
 
-## Krok 0. Gdzie działasz
+## Krok 0. System
 
-- Chmura: zmienna środowiskowa `CLAUDE_CODE_REMOTE` ma wartość `true`.
-- W przeciwnym razie praca lokalna. Ustal system: Windows, Linux albo macOS, oraz rodzaj powłoki. Na Windowsie w Git Bash ścieżki piszesz z ukośnikiem (`./python/python.exe`), w PowerShell i cmd z odwrotnym ukośnikiem (`.\python\python.exe`).
+Ustal system: Windows, Linux albo macOS, oraz rodzaj powłoki. Na Windowsie w Git Bash ścieżki piszesz z ukośnikiem (`./python/python.exe`), w PowerShell i cmd z odwrotnym ukośnikiem (`.\python\python.exe`).
 
-Zapamiętaj wynik. Od niego zależą kroki 1, 1a i 6.
+Zapamiętaj wynik. Od niego zależą kroki 1, 1a, 6 i 7.
 
 ## Krok 1. Python systemowy
 
@@ -79,7 +78,7 @@ Bez zgody: ❌ z krokiem naprawczym „Dopisz w `python/python3XX._pth` linię `
 
 Oba działają: ✅. Od tej chwili w kolejnych krokach używaj tego `python.exe`.
 
-Jeśli `python.exe` nie daje się uruchomić, bo blokuje go Windows, SmartScreen, antywirus albo polityka firmy (na przykład „Odmowa dostępu” albo komunikat o zablokowanej aplikacji): ❌. Nie próbuj tego obchodzić: nie odblokowuj plików, nie zmieniaj ustawień zabezpieczeń i nie przenoś Pythona w inne miejsce. Krok naprawczy: „Napisz do trenera na czacie szkolenia. Przejdziesz na pracę w chmurze”.
+Jeśli `python.exe` nie daje się uruchomić, bo blokuje go Windows, SmartScreen, antywirus albo polityka firmy (na przykład „Odmowa dostępu” albo komunikat o zablokowanej aplikacji): ❌. Nie próbuj tego obchodzić: nie odblokowuj plików, nie zmieniaj ustawień zabezpieczeń i nie przenoś Pythona w inne miejsce. Krok naprawczy: „Napisz do trenera na czacie szkolenia”.
 
 ### 1a.5 Git ignoruje folder
 
@@ -94,16 +93,13 @@ Jeśli `python.exe` nie daje się uruchomić, bo blokuje go Windows, SmartScreen
 
 ## Krok 3. Skille
 
-Sprawdź, czy istnieją pliki `SKILL.md` dla tych skilli:
+Sprawdź, czy istnieją pliki `.claude/skills/<nazwa>/SKILL.md` dla tych skilli:
 
-- `grill-with-docs`, `grilling`, `domain-modeling`
+- `grilling`, `grill-with-docs`, `domain-modeling`
 - `to-spec`, `to-tickets`, `implement`
-- `tdd`, `code-review`
-- `triage`, `diagnosing-bugs`
+- `tdd`, `code-review`, `prototype`
 
-Szukaj w `.claude/skills/<nazwa>/SKILL.md` (Claude Code) i w `.cline/skills/<nazwa>/SKILL.md` (Cline). Wystarczy komplet w katalogu narzędzia, w którym działasz. Jeśli nie wiesz, w którym narzędziu działasz, sprawdź oba i podaj wynik dla każdego.
-
-Sprawdź też konfigurację skilli: istnieją pliki `docs/agents/issue-tracker.md` i `docs/agents/triage-labels.md`.
+Sprawdź też konfigurację skilli: istnieją pliki `docs/agents/issue-tracker.md`, `docs/agents/triage-labels.md` i `docs/agents/domain.md`.
 
 Brak któregokolwiek skilla albo pliku konfiguracji to ❌. Wypisz brakujące nazwy.
 
@@ -111,41 +107,48 @@ Brak któregokolwiek skilla albo pliku konfiguracji to ❌. Wypisz brakujące na
 
 Uruchom testy jednym poleceniem z korzenia repozytorium:
 - Windows: `run_tests.bat`
-- Linux, macOS i chmura: `./run_tests.sh`
+- Linux i macOS: `./run_tests.sh`
 
 Skrypty same znajdują Pythona systemowego albo przenośnego z folderu `python/`.
 
-Wszystkie testy muszą przejść. Podaj liczbę testów i czas. Jakikolwiek nieudany test to ❌: wypisz nazwy nieudanych testów i pierwszą linię błędu. Nie poprawiaj testów ani kodu.
+Wszystkie testy muszą przejść. Pominięty test (skipped) jest w porządku. Podaj liczbę testów i czas. Jakikolwiek nieudany test to ❌: wypisz nazwy nieudanych testów i pierwszą linię błędu. Nie poprawiaj testów ani kodu.
 
 ## Krok 5. Dane do zadań
 
-Istnieje plik `fixtures/firmware_vectors.json`. Brak to ❌.
+1. W pliku `fixtures/apps.json` jest aplikacja o `"id": "weather"` (Pogoda).
+2. Istnieje plik `mcp_server/lumio.sql`.
 
-Treść zadań, w tym zgłoszenia incydentów, jest na stronie z zadaniami, a nie w repozytorium. Nie szukaj jej tutaj.
+Brak któregokolwiek to ❌.
+
+Treść zadań jest w `zadania/index.html`. Nie czytaj jej, to nie jest część sprawdzenia.
 
 ## Krok 6. Serwer telewizora
 
-W chmurze pomiń ten krok z adnotacją „w chmurze telewizor pokazuje trener”. To nie jest błąd.
-
-Lokalnie:
 1. Uruchom serwer w tle: `run_server.bat` (Windows) albo `./run_server.sh`.
 2. Odczekaj do 5 sekund i pobierz `http://localhost:8765/tv/?device=TV-001`. Oczekiwany kod odpowiedzi to 200.
 3. Zatrzymaj serwer, który uruchomiłeś.
 
 Zajęty port 8765 to ❌ z krokiem naprawczym „zamknij program, który używa portu 8765, albo poproś trenera o inny port”. Inny błąd uruchomienia to ❌ z pierwszą linią błędu.
 
+## Krok 7. Serwer MCP
+
+Uruchom tym samym Pythonem co testy: `<python> mcp_server/smoke.py mcp_server/lumio_db.py`. Pierwsza linia wyniku zaczyna się od `Serwer: lumio-db`, a lista narzędzi zawiera `describe_database` i `run_query`: ✅. Inaczej ❌ z pierwszą linią błędu.
+
+Nie podłączaj serwera do Claude Code. To osobne zadanie.
+
 ## Raport
 
 Na końcu wypisz raport w tej postaci, jedna linia na krok:
 
 ```
-Gdzie: <chmura | lokalnie, system>
+System: <Windows | macOS | Linux, powłoka>
 Python: <wynik> <wersja i skąd: systemowy lub przenośny z python/, albo przyczyna>
 Git i stan startowy: <wynik> <szczegół>
 Skille: <wynik> <szczegół lub brakujące nazwy>
 Testy: <wynik> <liczba testów albo nieudane testy>
 Dane do zadań: <wynik> <szczegół>
 Serwer telewizora: <wynik> <szczegół>
+Serwer MCP: <wynik> <szczegół>
 Zmiany w tym przebiegu: <co zmieniłeś za zgodą uczestnika albo „brak”>
 ```
 
